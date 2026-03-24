@@ -1061,7 +1061,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f26952fac8dcf54d90080a33b03d5e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  openSides: 4
+  openSides: 3
 --- !u!1 &2601791567675515075
 GameObject:
   m_ObjectHideFlags: 0
@@ -1207,7 +1207,6 @@ GameObject:
   - component: {fileID: 1056022518073394038}
   - component: {fileID: 1565966427380174329}
   - component: {fileID: 706278924941400332}
-  - component: {fileID: 1336992269510768222}
   m_Layer: 0
   m_Name: Cube
   m_TagString: Untagged
@@ -1301,33 +1300,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!54 &1336992269510768222
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2693558542982169033}
-  serializedVersion: 4
-  m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 1
-  m_IsKinematic: 1
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
 --- !u!1 &2893924952896195964
 GameObject:
   m_ObjectHideFlags: 0
@@ -2885,7 +2857,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f26952fac8dcf54d90080a33b03d5e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  openSides: 3
+  openSides: 4
 --- !u!1 &6082693530952207544
 GameObject:
   m_ObjectHideFlags: 0
@@ -3246,7 +3218,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f26952fac8dcf54d90080a33b03d5e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  openSides: 1
+  openSides: 2
 --- !u!1 &6536702168874056888
 GameObject:
   m_ObjectHideFlags: 0
@@ -4006,7 +3978,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f26952fac8dcf54d90080a33b03d5e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  openSides: 2
+  openSides: 1
 --- !u!1 &9066411078379764575
 GameObject:
   m_ObjectHideFlags: 0
