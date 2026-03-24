@@ -562,6 +562,30 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6904829615355644262, guid: df4abf97c5b8eac46b38ca8a10d43a44, type: 3}
+      propertyPath: boss
+      value: 
+      objectReference: {fileID: 7137056878132403367, guid: b2e2e555984d3d14198a152b29373066, type: 3}
+    - target: {fileID: 6904829615355644262, guid: df4abf97c5b8eac46b38ca8a10d43a44, type: 3}
+      propertyPath: slime
+      value: 
+      objectReference: {fileID: 4691740097310613965, guid: 7457fe2680edb2b4499f8481fbf3145b, type: 3}
+    - target: {fileID: 6904829615355644262, guid: df4abf97c5b8eac46b38ca8a10d43a44, type: 3}
+      propertyPath: goblin
+      value: 
+      objectReference: {fileID: 1477899020845257901, guid: 58c5ed31399a96340a5491834cdfb2cf, type: 3}
+    - target: {fileID: 6904829615355644262, guid: df4abf97c5b8eac46b38ca8a10d43a44, type: 3}
+      propertyPath: health
+      value: 
+      objectReference: {fileID: 7607635354455057767, guid: b102d4af6432072479a14915836e3646, type: 3}
+    - target: {fileID: 6904829615355644262, guid: df4abf97c5b8eac46b38ca8a10d43a44, type: 3}
+      propertyPath: skeleton
+      value: 
+      objectReference: {fileID: 257030098590464741, guid: f0833e7fe809faa42809b405c7584427, type: 3}
+    - target: {fileID: 6904829615355644262, guid: df4abf97c5b8eac46b38ca8a10d43a44, type: 3}
+      propertyPath: closedRoom
+      value: 
+      objectReference: {fileID: 1249386352534850526, guid: 6f051554f8b96c546928beebe14049ab, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
