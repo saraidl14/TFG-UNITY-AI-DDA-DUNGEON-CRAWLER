@@ -8,28 +8,59 @@ public class RoomSpawns : MonoBehaviour
     // 0 = no open sides
     // 1 = bottom
     // 2 = top
-    // 3 = right
-    // 4 = left
-    // Start is called before the first frame update
+    // 3 = left
+    // 4 = right
+
+    private RoomGenerateTemplates templates;
+    private int rand;
+    private bool spawned = false;
+
     void Start()
     {
-        
+      templates = GameObject.FindGameObjectWithTag("Rooms").GetComponent<RoomGenerateTemplates>();
+       Invoke("Spawn", 0.1f);
     }
 
     void Spawn()
     {
-        if (openSides == 1)
+        if (spawned == false)
         {
+            if (openSides == 1) // bottom
+            {
+                rand = Random.Range(0, templates.bottomRooms.Length);
+                Instantiate(templates.bottomRooms[rand], transform.position, templates.bottomRooms[rand].transform.rotation);
+            }
+            else if (openSides == 2) // top
+            {
+                rand = Random.Range(0, templates.topRooms.Length);
+                Instantiate(templates.topRooms[rand], transform.position, templates.topRooms[rand].transform.rotation);
+            }
+            else if (openSides == 3) //left
+            {
+                rand = Random.Range(0, templates.leftRooms.Length);
+                Instantiate(templates.leftRooms[rand], transform.position, templates.leftRooms[rand].transform.rotation);
+            }
+            else if (openSides == 4) // right
+            {
+                rand = Random.Range(0, templates.rightRooms.Length);
+                Instantiate(templates.rightRooms[rand], transform.position, templates.rightRooms[rand].transform.rotation);
+            }
+                spawned = true;
         }
-        else if (openSides == 2)
-        {
-        }
-        else if (openSides == 3)
-        {
-        }
-        else if (openSides == 4)
-        {
+        
+    }
 
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("SpawnPoint"))
+        {
+            if (other.GetComponent<RoomSpawns>().spawned==false && spawned==false)
+            {
+                Instantiate(templates.closedRoom, transform.position, Quaternion.identity);
+                Destroy(gameObject);
+            }
+            spawned = true;
+            
         }
     }
 
