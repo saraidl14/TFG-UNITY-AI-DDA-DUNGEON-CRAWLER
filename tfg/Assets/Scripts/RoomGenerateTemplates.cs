@@ -10,6 +10,8 @@ public class RoomGenerateTemplates : MonoBehaviour
     public GameObject[] leftRooms; //Array de GameObjects de las salas con apertura en la parte izquierda.
     public GameObject[] rightRooms; //Array de GameObjects de las salas con apertura en la parte derecha.
 
+    public GameObject centralRoom; //GameObject de la sala central.
+
     public GameObject closedRoom; //GameObject de la sala cerrada, se puede usar para rellenar los huecos que queden entre las salas generadas.
               //REVISAR.
 
@@ -28,10 +30,16 @@ public class RoomGenerateTemplates : MonoBehaviour
 
     private void Start()
     {
+        Invoke("SpawnPlayer", 1f);
         Invoke("SpawnEnemies", 1f);
         Invoke("SpawnHelps", 1f);
+        
     }
 
+    private void SpawnPlayer()
+    {
+        Instantiate(player, centralRoom.transform.position, Quaternion.identity);
+    }
     private void SpawnEnemies() //Aquí es donde se spawnean los enemigos, el boss se spawnea en la última sala y el resto de enemigos en las demás salas. Podemos hacer que el
                                 //tipo de enemigo que se spawnee dependa del número de sala, por ejemplo, en las primeras salas que se spawneen slimes, luego skeletons,
                                 //luego goblins y finalmente el boss. Esto nos puede ayudar a controlar la dificultad del juego.
@@ -47,4 +55,5 @@ public class RoomGenerateTemplates : MonoBehaviour
     {
 
     }
+  
 }
