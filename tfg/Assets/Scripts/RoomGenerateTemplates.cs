@@ -20,6 +20,8 @@ public class RoomGenerateTemplates : MonoBehaviour
     public GameObject goblin;
     public GameObject health;
 
+    public GameObject player;
+
     private void Start()
     {
         Invoke("SpawnEnemies", 0.5f);
