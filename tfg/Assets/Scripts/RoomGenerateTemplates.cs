@@ -5,10 +5,10 @@ using UnityEngine.UIElements;
 
 public class RoomGenerateTemplates : MonoBehaviour
 {
-    public GameObject[] topRooms;
-    public GameObject[] bottomRooms;
-    public GameObject[] leftRooms;
-    public GameObject[] rightRooms;
+    public GameObject[] topRooms; //Array de GameObjects de las salas con apertura en la parte superior.
+    public GameObject[] bottomRooms; //Array de GameObjects de las salas con apertura en la parte inferior.
+    public GameObject[] leftRooms; //Array de GameObjects de las salas con apertura en la parte izquierda.
+    public GameObject[] rightRooms; //Array de GameObjects de las salas con apertura en la parte derecha. 
 
     public GameObject closedRoom;
 
