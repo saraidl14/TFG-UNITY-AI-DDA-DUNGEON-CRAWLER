@@ -18,6 +18,8 @@ public class SlimeController : EnemyBase
     // Comportamiento: persigue al jugador y ataca al llegar al rango
     protected override void UpdateBehavior()
     {
+        if (!PlayerDetected()) return; // Fuera de rango, no hace nada
+
         if (PlayerInRange())
         {
             if (Time.time >= lastAttackTime + attackCooldown)

@@ -21,6 +21,8 @@ public class BossController : EnemyBase
     // Comportamiento: persigue y ataca. Preparado para BT/DDA mas adelante
     protected override void UpdateBehavior()
     {
+        if (!PlayerDetected()) return; // Fuera de rango, no hace nada
+
         if (PlayerInRange())
         {
             if (Time.time >= lastAttackTime + attackCooldown)

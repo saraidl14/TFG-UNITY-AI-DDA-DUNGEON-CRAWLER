@@ -10,12 +10,17 @@ public abstract class EnemyBase : MonoBehaviour
     public float moveSpeed = 3f;
     public float attackRange = 1.5f;
     public float attackCooldown = 1f;
+    public float detectionRange = 8f;
+
+    [Header("Room Bounds")]
+    public float maxRoamDistance = 8f;
 
     private Animation anim;
 
     protected float currentHealth;
     protected Transform player;
     protected float lastAttackTime;
+    protected Vector3 spawnPosition;
 
     protected virtual void Awake()
     {
@@ -24,6 +29,7 @@ public abstract class EnemyBase : MonoBehaviour
 
     protected virtual void Start()
     {
+        spawnPosition = transform.position;
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
             player = playerObj.transform;
@@ -62,10 +68,20 @@ public abstract class EnemyBase : MonoBehaviour
         return Vector3.Distance(transform.position, player.position) <= attackRange;
     }
 
+    protected bool PlayerDetected()
+    {
+        return Vector3.Distance(transform.position, player.position) <= detectionRange;
+    }
+
     protected void MoveTowardsPlayer()
     {
         Vector3 direction = (player.position - transform.position).normalized;
-        transform.position += direction * moveSpeed * Time.deltaTime;
+        Vector3 nextPosition = transform.position + direction * moveSpeed * Time.deltaTime;
+
+        // No sale de su sala
+        if (Vector3.Distance(nextPosition, spawnPosition) > maxRoamDistance) return;
+
+        transform.position = nextPosition;
         transform.LookAt(new Vector3(player.position.x, transform.position.y, player.position.z));
     }
 }
