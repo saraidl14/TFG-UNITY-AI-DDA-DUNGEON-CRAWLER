@@ -28,8 +28,8 @@ public class RoomGenerateTemplates : MonoBehaviour
 
     private void Start()
     {
-        Invoke("SpawnEnemies", 0.5f);
-        Invoke("SpawnHelps", 0.5f);
+        Invoke("SpawnEnemies", 1f);
+        Invoke("SpawnHelps", 1f);
     }
 
     private void SpawnEnemies() //Aquí es donde se spawnean los enemigos, el boss se spawnea en la última sala y el resto de enemigos en las demás salas. Podemos hacer que el
