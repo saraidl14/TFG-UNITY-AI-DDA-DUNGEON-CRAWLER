@@ -8,6 +8,11 @@ public class PlayerController : MonoBehaviour
     public float jumpHeight = 1.5f;
     public float gravity = -9.81f;
 
+    [Header("Ground Check")]
+    public Transform groundCheck;
+    public float groundDistance = 0.3f;
+    public LayerMask groundMask;
+
     [Header("Camara")]
     public Camera playerCamera;
     public float mouseSensitivity = 100f;
@@ -15,6 +20,7 @@ public class PlayerController : MonoBehaviour
     private CharacterController controller;
     private Vector3 velocity;
     private float xRotation = 0f;
+    private bool isGrounded;
 
     private void Awake()
     {
@@ -33,6 +39,8 @@ public class PlayerController : MonoBehaviour
 
     private void HandleMovement()
     {
+        isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
+
         float x = Input.GetAxis("Horizontal"); // A/D
         float z = Input.GetAxis("Vertical");   // W/S
 
@@ -40,10 +48,10 @@ public class PlayerController : MonoBehaviour
         controller.Move(move * moveSpeed * Time.deltaTime);
 
         // Gravedad y salto
-        if (controller.isGrounded && velocity.y < 0)
+        if (isGrounded && velocity.y < 0)
             velocity.y = -2f;
 
-        if (controller.isGrounded && Input.GetButtonDown("Jump"))
+        if (isGrounded && Input.GetButtonDown("Jump"))
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
 
         velocity.y += gravity * Time.deltaTime;
