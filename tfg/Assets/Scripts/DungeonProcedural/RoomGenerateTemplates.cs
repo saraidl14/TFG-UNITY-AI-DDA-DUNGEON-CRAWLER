@@ -24,8 +24,14 @@ public class RoomGenerateTemplates : MonoBehaviour
     public GameObject slime;
     public GameObject skeleton;
     public GameObject goblin;
-    public GameObject health;
+    public GameObject orc;
+    public GameObject spider;
+    public GameObject mage;
 
+    //AYUDAS
+    public GameObject chest;
+    public GameObject health;
+    //JUGADOR
     public GameObject player;
 
     private void Start()
