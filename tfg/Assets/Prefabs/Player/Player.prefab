@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 8360093062277753326}
   - component: {fileID: 8109534927896444705}
   - component: {fileID: 533270558739023388}
+  - component: {fileID: 6532312357962199239}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -173,6 +174,38 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 100
+  maxStamina: 100
+  staminaRegenFast: 20
+  staminaRegenSlow: 8
+  staminaPenaltyDuration: 7
+  dashDistance: 5
+  dashDuration: 0.15
+  dashCooldownMin: 1
+  dashCooldownMax: 2
+--- !u!114 &6532312357962199239
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2585450670901033395}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23529e3586dcf9f4daf646eac38cb4e4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  basicAttackDamage: 10
+  basicAttackRange: 1.5
+  basicAttackCooldown: 0.4
+  heavyAttackDamage: 25
+  heavyAttackRange: 2
+  heavyAttackCooldown: 1
+  heavyAttackStaminaCost: 30
+  dashInputCooldown: 2
+  enemyLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  enemiesKilledThisRoom: 0
 --- !u!1 &4248341931167828520
 GameObject:
   m_ObjectHideFlags: 0

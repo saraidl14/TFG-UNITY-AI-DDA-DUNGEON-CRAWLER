@@ -63,6 +63,9 @@ public abstract class EnemyBase : MonoBehaviour
         Destroy(gameObject);
     }
 
+    /// <summary>Devuelve la salud actual del enemigo (usado por PlayerCombat para detectar muertes).</summary>
+    public float GetCurrentHealth() => currentHealth;
+
     protected bool PlayerInRange()
     {
         return Vector3.Distance(transform.position, player.position) <= attackRange;
