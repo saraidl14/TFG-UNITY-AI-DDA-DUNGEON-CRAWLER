@@ -1,18 +1,16 @@
-using System.Collections;
-using System.Collections.Generic;
+using BehaviorTree;
 using UnityEngine;
 
-public class TaskMaintainDifficulty : MonoBehaviour
+/// <summary>
+/// Accion BT-DDA: mantiene el nivel de dificultad actual sin cambios.
+/// Siempre devuelve SUCCESS (rama de fallback del Selector DDA).
+/// </summary>
+public class TaskMaintainDifficulty : Node
 {
-    // Start is called before the first frame update
-    void Start()
+    public override NodeState Evaluate()
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        Debug.Log($"[BT-DDA] Dificultad mantenida en nivel {DifficultyManager.Instance?.currentLevel}.");
+        state = NodeState.SUCCESS;
+        return state;
     }
 }

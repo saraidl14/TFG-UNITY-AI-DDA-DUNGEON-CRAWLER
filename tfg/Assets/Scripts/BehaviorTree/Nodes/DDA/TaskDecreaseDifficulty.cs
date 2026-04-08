@@ -1,18 +1,32 @@
-using System.Collections;
-using System.Collections.Generic;
+using BehaviorTree;
 using UnityEngine;
 
-public class TaskDecreaseDifficulty : MonoBehaviour
+/// <summary>
+/// Accion BT-DDA: baja el nivel de dificultad en DifficultyManager.
+/// </summary>
+public class TaskDecreaseDifficulty : Node
 {
-    // Start is called before the first frame update
-    void Start()
+    private int _amount;
+
+    /// <param name="amount">Cuantos niveles bajar (1, 2 o 3 segun tabla v2.0).</param>
+    public TaskDecreaseDifficulty(int amount = 1)
     {
-        
+        _amount = amount;
     }
 
-    // Update is called once per frame
-    void Update()
+    public override NodeState Evaluate()
     {
-        
+        if (DifficultyManager.Instance == null)
+        {
+            Debug.LogWarning("[TaskDecreaseDifficulty] DifficultyManager no encontrado.");
+            state = NodeState.FAILURE;
+            return state;
+        }
+
+        DifficultyManager.Instance.AdjustLevel(-_amount);
+        Debug.Log($"[BT-DDA] Dificultad reducida en {_amount}.");
+
+        state = NodeState.SUCCESS;
+        return state;
     }
 }

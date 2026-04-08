@@ -207,6 +207,20 @@ public class MetricsTracker : MonoBehaviour
     /// </summary>
     public bool IsNoItemsRun() => ItemsUsed == 0;
 
+    // ─────────────────────────────────────────────
+    // DDA SCORE
+    // ─────────────────────────────────────────────
+
+    /// <summary>Ultimo score DDA calculado por DifficultyManager. Usado por nodos BT.</summary>
+    public float LastDDAScore { get; private set; } = 0f;
+
+    /// <summary>Guarda el score DDA de la ultima evaluacion.</summary>
+    public void SetDDAScore(float score)
+    {
+        LastDDAScore = score;
+        Debug.Log($"[MetricsTracker] DDA Score guardado: {score:F2}");
+    }
+
     /// <summary>
     /// Devuelve un resumen de las metricas actuales para depuracion.
     /// </summary>

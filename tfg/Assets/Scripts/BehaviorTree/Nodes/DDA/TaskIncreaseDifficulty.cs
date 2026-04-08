@@ -1,18 +1,33 @@
-using System.Collections;
-using System.Collections.Generic;
+using BehaviorTree;
 using UnityEngine;
 
-public class TaskIncreaseDifficulty : MonoBehaviour
+/// <summary>
+/// Accion BT-DDA: sube el nivel de dificultad en DifficultyManager.
+/// Llama a ApplyAdjustment a traves del metodo publico de DifficultyManager.
+/// </summary>
+public class TaskIncreaseDifficulty : Node
 {
-    // Start is called before the first frame update
-    void Start()
+    private int _amount;
+
+    /// <param name="amount">Cuantos niveles subir (1, 2 o 3 segun tabla v2.0).</param>
+    public TaskIncreaseDifficulty(int amount = 1)
     {
-        
+        _amount = amount;
     }
 
-    // Update is called once per frame
-    void Update()
+    public override NodeState Evaluate()
     {
-        
+        if (DifficultyManager.Instance == null)
+        {
+            Debug.LogWarning("[TaskIncreaseDifficulty] DifficultyManager no encontrado.");
+            state = NodeState.FAILURE;
+            return state;
+        }
+
+        DifficultyManager.Instance.AdjustLevel(_amount);
+        Debug.Log($"[BT-DDA] Dificultad aumentada en {_amount}.");
+
+        state = NodeState.SUCCESS;
+        return state;
     }
 }

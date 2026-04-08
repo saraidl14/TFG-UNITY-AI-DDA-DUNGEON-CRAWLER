@@ -33,6 +33,10 @@ public abstract class EnemyBase : MonoBehaviour
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
             player = playerObj.transform;
+
+        // Registrarse en EnemiesControllers para el tracking DDA
+        if (EnemiesControllers.Instance != null)
+            EnemiesControllers.Instance.RegisterEnemy(this);
     }
 
     protected virtual void Update()
@@ -60,6 +64,10 @@ public abstract class EnemyBase : MonoBehaviour
 
     protected virtual void Die()
     {
+        // Desregistrarse: EnemiesControllers detecta si la sala queda limpia
+        if (EnemiesControllers.Instance != null)
+            EnemiesControllers.Instance.UnregisterEnemy(this);
+
         Destroy(gameObject);
     }
 

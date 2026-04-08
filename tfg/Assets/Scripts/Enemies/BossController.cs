@@ -48,4 +48,15 @@ public class BossController : EnemyBase
         OnBossDead?.Invoke(); // Avisa al sistema de salas para hacer la transicion
         base.Die();
     }
+
+    /// <summary>Escala los stats del Boss segun el nivel DDA. Llamado por EnemiesControllers.</summary>
+    public void ApplyDifficultyScaling(float hpMultiplier, float damageMultiplier, float speedMultiplier)
+    {
+        maxHealth     = 300f * hpMultiplier;
+        currentHealth = maxHealth;
+        damage        = 25f  * damageMultiplier;
+        moveSpeed     = 3.5f * speedMultiplier;
+
+        Debug.Log($"[BossController] DDA aplicado | HP:{maxHealth} | DMG:{damage} | SPD:{moveSpeed}");
+    }
 }
