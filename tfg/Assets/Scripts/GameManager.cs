@@ -28,6 +28,20 @@ public class GameManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
+        // Buscar el panel y su Canvas entre los hijos (incluye inactivos)
+        _dungeonClearedPanel = GetComponentInChildren<DungeonClearedPanel>(true);
+        _dungeonCanvas       = GetComponentInChildren<Canvas>(true);
+
+        if (_dungeonClearedPanel != null)
+            Debug.Log($"[GameManager] DungeonClearedPanel encontrado en: {_dungeonClearedPanel.gameObject.name}");
+        else
+            Debug.LogError("[GameManager] DungeonClearedPanel NO encontrado. Asegurate de que el script esta en un hijo del GameController.");
+
+        if (_dungeonCanvas != null)
+            Debug.Log($"[GameManager] Canvas del panel encontrado: {_dungeonCanvas.gameObject.name}");
+        else
+            Debug.LogError("[GameManager] Canvas del DungeonPanel NO encontrado.");
+
         // Cargar datos persistentes de partidas anteriores
         LoadPersistentData();
     }
@@ -48,6 +62,38 @@ public class GameManager : MonoBehaviour
 
     /// <summary>Nivel de dificultad actual, gestionado por DifficultyManager.</summary>
     public int CurrentDifficultyLevel { get; set; } = 1;
+
+    // ─────────────────────────────────────────────
+    // PANEL DE MAZMORRA COMPLETADA
+    // ─────────────────────────────────────────────
+
+    private DungeonClearedPanel _dungeonClearedPanel;
+    private Canvas              _dungeonCanvas;
+
+    // ─────────────────────────────────────────────
+    // TRACKING POR MAZMORRA
+    // ─────────────────────────────────────────────
+
+    /// <summary>Numero de mazmorra actual (empieza en 1).</summary>
+    public int DungeonNumber { get; private set; } = 1;
+
+    /// <summary>Tiempo transcurrido en la ultima mazmorra completada.</summary>
+    public float LastDungeonTime   { get; private set; } = 0f;
+
+    /// <summary>Enemigos eliminados en la ultima mazmorra completada.</summary>
+    public int LastDungeonKills    { get; private set; } = 0;
+
+    /// <summary>Monedas ganadas en la ultima mazmorra completada.</summary>
+    public int LastDungeonCoins    { get; private set; } = 0;
+
+    /// <summary>Puntuacion obtenida en la ultima mazmorra completada.</summary>
+    public int LastDungeonScore    { get; private set; } = 0;
+
+    // Snapshots al inicio de cada mazmorra para calcular el delta
+    private float _dungeonStartTime  = 0f;
+    private int   _dungeonStartKills = 0;
+    private int   _dungeonStartCoins = 0;
+    private int   _dungeonStartScore = 0;
 
     // ─────────────────────────────────────────────
     // BOOST DE VELOCIDAD (persiste entre mazmorras, se pierde al morir)
@@ -222,12 +268,34 @@ public class GameManager : MonoBehaviour
         if (CurrentDifficultyLevel >= 10 && ScoreManager.Instance != null)
             ScoreManager.Instance.RegisterReachedLevel10();
 
-        // Acumular boost de velocidad como recompensa por superar la mazmorra
-        AddSpeedBoost();
-        Debug.Log($"[GameManager] Boss derrotado. Nuevo boost acumulado: {AccumulatedSpeedBoost}");
+        // ── Capturar stats de esta mazmorra para el panel ──
+        if (ScoreManager.Instance != null)
+        {
+            LastDungeonTime  = ScoreManager.Instance.TotalTime          - _dungeonStartTime;
+            LastDungeonKills = ScoreManager.Instance.TotalEnemiesKilled - _dungeonStartKills;
+            LastDungeonScore = ScoreManager.Instance.AccumulatedScore   - _dungeonStartScore;
+        }
+        LastDungeonCoins = SessionCoins - _dungeonStartCoins;
 
-        // Cargar nueva mazmorra (la generacion procedural crea un nuevo mapa)
-        LoadGameScene();
+        // ── Acumular boost de velocidad ──
+        AddSpeedBoost();
+        Debug.Log($"[GameManager] Mazmorra {DungeonNumber} completada. Boost acumulado: {AccumulatedSpeedBoost}");
+
+        // ── Mostrar panel de mazmorra completada ──
+        if (_dungeonClearedPanel != null)
+        {
+            // Activar el Canvas padre desde GameManager por si estuviera inactivo
+            if (_dungeonCanvas != null)
+                _dungeonCanvas.gameObject.SetActive(true);
+
+            _dungeonClearedPanel.Show();
+        }
+        else
+        {
+            Debug.LogWarning("[GameManager] DungeonClearedPanel no encontrado. Cargando siguiente mazmorra directamente.");
+            DungeonNumber++;
+            LoadGameScene();
+        }
     }
 
     // ─────────────────────────────────────────────
@@ -299,7 +367,16 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void LoadGameScene()
     {
-        Debug.Log($"[GameManager] Cargando escena: {gameSceneName}");
+        // Incrementar contador de mazmorra ANTES de cargar la nueva
+        DungeonNumber++;
+
+        Debug.Log($"[GameManager] Cargando mazmorra {DungeonNumber}: {gameSceneName}");
+
+        // Guardar snapshot para calcular el delta de la proxima mazmorra
+        _dungeonStartTime  = ScoreManager.Instance != null ? ScoreManager.Instance.TotalTime          : 0f;
+        _dungeonStartKills = ScoreManager.Instance != null ? ScoreManager.Instance.TotalEnemiesKilled : 0;
+        _dungeonStartCoins = SessionCoins;
+        _dungeonStartScore = ScoreManager.Instance != null ? ScoreManager.Instance.AccumulatedScore   : 0;
 
         if (MetricsTracker.Instance != null)
             MetricsTracker.Instance.ResetRoomMetrics();
