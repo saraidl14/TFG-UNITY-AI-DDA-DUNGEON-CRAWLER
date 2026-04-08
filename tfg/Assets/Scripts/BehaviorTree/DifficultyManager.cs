@@ -46,6 +46,9 @@ public class DifficultyManager : MonoBehaviour
     private int _roomsSinceLastAdjustment = 0;
     private int _lastAdjustment           = 0;
 
+    /// <summary>Ultimo ajuste aplicado. Positivo = subio, negativo = bajo, 0 = mantuvo.</summary>
+    public int LastAdjustment => _lastAdjustment;
+
     // ─────────────────────────────────────────────
     // TABLAS DE SCALING (doc Game_Balance_10_Difficulty_Levels)
     // ─────────────────────────────────────────────

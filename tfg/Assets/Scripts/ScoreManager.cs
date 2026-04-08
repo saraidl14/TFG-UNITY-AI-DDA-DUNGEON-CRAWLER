@@ -272,7 +272,7 @@ public class ScoreManager : MonoBehaviour
     // ─────────────────────────────────────────────
 
     /// <summary>
-    /// Reinicia todos los contadores. Llamar al iniciar una nueva partida.
+    /// Reinicia todos los contadores. Llamar al volver al menu principal.
     /// </summary>
     public void ResetAll()
     {
@@ -286,5 +286,17 @@ public class ScoreManager : MonoBehaviour
         AccumulatedScore   = 0;
         FinalScore         = 0;
         Debug.Log("[ScoreManager] Contadores reseteados.");
+    }
+
+    /// <summary>
+    /// Resetea el intento actual pero acumula las muertes.
+    /// Llamar al pulsar Reintentar para que las muertes se sumen entre intentos.
+    /// </summary>
+    public void ResetForRetry()
+    {
+        int savedDeaths    = TotalDeaths; // Guardar muertes acumuladas
+        ResetAll();
+        TotalDeaths        = savedDeaths; // Restaurar
+        Debug.Log($"[ScoreManager] Retry: muertes acumuladas conservadas ({TotalDeaths}).");
     }
 }

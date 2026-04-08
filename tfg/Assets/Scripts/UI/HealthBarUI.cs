@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 /// <summary>
 /// Controla la barra de vida y stamina del jugador en el HUD.
@@ -23,7 +24,7 @@ public class HealthBarUI : MonoBehaviour
     public Slider healthBar;
 
     [Tooltip("Texto opcional que muestra HP actual / HP max.")]
-    public Text healthText;
+    public TMP_Text healthText;
 
     [Header("Barra de Stamina")]
     [Tooltip("Slider o Image con ImageType = Filled para la stamina.")]

@@ -60,6 +60,10 @@ public class RoomGenerateTemplates : MonoBehaviour
         SpawnPlayer();
         SpawnEnemies();
         SpawnHelps();
+
+        // Arrancar el timer de sala para MetricsTracker
+        if (MetricsTracker.Instance != null)
+            MetricsTracker.Instance.StartRoomTimer();
     }
 
     private void SpawnPlayer()
