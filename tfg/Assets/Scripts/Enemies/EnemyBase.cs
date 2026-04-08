@@ -15,6 +15,10 @@ public abstract class EnemyBase : MonoBehaviour
     [Header("Room Bounds")]
     public float maxRoamDistance = 8f;
 
+    [Header("Recompensa")]
+    [Tooltip("Monedas que da este enemigo al morir. 0 = sin recompensa directa (ej: boss).")]
+    public int coinReward = 20;
+
     private Animation anim;
 
     protected float currentHealth;
@@ -67,6 +71,10 @@ public abstract class EnemyBase : MonoBehaviour
 
     protected virtual void Die()
     {
+        // Dar monedas por matar este enemigo
+        if (coinReward > 0 && GameManager.Instance != null)
+            GameManager.Instance.AddCoins(coinReward);
+
         // Desregistrarse: EnemiesControllers detecta si la sala queda limpia
         if (EnemiesControllers.Instance != null)
             EnemiesControllers.Instance.UnregisterEnemy(this);

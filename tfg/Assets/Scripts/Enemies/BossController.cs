@@ -10,12 +10,13 @@ public class BossController : EnemyBase
     protected override void Awake()
     {
         base.Awake();
-        maxHealth = 80f;
-        damage = 15f;
-        moveSpeed = 3.5f;
-        attackRange = 2f;
+        maxHealth      = 80f;
+        damage         = 15f;
+        moveSpeed      = 3.5f;
+        attackRange    = 2f;
         attackCooldown = 2f;
-        currentHealth = maxHealth;
+        currentHealth  = maxHealth;
+        coinReward     = 0; // El boss no da monedas directas: su recompensa es via ScoreManager
     }
 
     // Comportamiento: persigue y ataca. Preparado para BT/DDA mas adelante

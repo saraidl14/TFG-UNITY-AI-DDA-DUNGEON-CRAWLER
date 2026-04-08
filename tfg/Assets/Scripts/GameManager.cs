@@ -50,6 +50,34 @@ public class GameManager : MonoBehaviour
     public int CurrentDifficultyLevel { get; set; } = 1;
 
     // ─────────────────────────────────────────────
+    // BOOST DE VELOCIDAD (persiste entre mazmorras, se pierde al morir)
+    // ─────────────────────────────────────────────
+
+    [Header("Boost de Velocidad")]
+    [Tooltip("Velocidad extra acumulada por cada boss derrotado.")]
+    public float speedBoostPerBoss = 0.5f;
+
+    [Tooltip("Maximo boost de velocidad acumulable en un run.")]
+    public float maxSpeedBoost = 3f;
+
+    /// <summary>Boost acumulado en el run actual. Se aplica al spawnear un nuevo jugador.</summary>
+    public float AccumulatedSpeedBoost { get; private set; } = 0f;
+
+    /// <summary>Suma un incremento al boost. Llamado al derrotar al boss.</summary>
+    public void AddSpeedBoost()
+    {
+        AccumulatedSpeedBoost = Mathf.Min(AccumulatedSpeedBoost + speedBoostPerBoss, maxSpeedBoost);
+        Debug.Log($"[GameManager] Speed boost acumulado: {AccumulatedSpeedBoost} / {maxSpeedBoost}");
+    }
+
+    /// <summary>Reinicia el boost a 0. Llamado al morir el jugador.</summary>
+    public void ResetSpeedBoost()
+    {
+        AccumulatedSpeedBoost = 0f;
+        Debug.Log("[GameManager] Speed boost reiniciado por muerte.");
+    }
+
+    // ─────────────────────────────────────────────
     // PERSISTENCIA: MONEDAS Y POCIONES
     // ─────────────────────────────────────────────
 
@@ -73,6 +101,16 @@ public class GameManager : MonoBehaviour
 
     /// <summary>Pociones no usadas en la sesion actual.</summary>
     public int SessionPotions { get; set; } = 0;
+
+    /// <summary>
+    /// Añade monedas a la sesion actual.
+    /// Llamado por EnemyBase al morir un enemigo y por EnemiesControllers con el bonus de limpieza.
+    /// </summary>
+    public void AddCoins(int amount)
+    {
+        SessionCoins += amount;
+        Debug.Log($"[GameManager] +{amount} monedas | Total sesion: {SessionCoins}");
+    }
 
     // ─────────────────────────────────────────────
     // CICLO DE VIDA
@@ -184,8 +222,12 @@ public class GameManager : MonoBehaviour
         if (CurrentDifficultyLevel >= 10 && ScoreManager.Instance != null)
             ScoreManager.Instance.RegisterReachedLevel10();
 
-        // TODO: Cargar siguiente sala o escena de victoria segun el estado del juego
-        Debug.Log("[GameManager] Transicion a siguiente sala pendiente de implementar.");
+        // Acumular boost de velocidad como recompensa por superar la mazmorra
+        AddSpeedBoost();
+        Debug.Log($"[GameManager] Boss derrotado. Nuevo boost acumulado: {AccumulatedSpeedBoost}");
+
+        // Cargar nueva mazmorra (la generacion procedural crea un nuevo mapa)
+        LoadGameScene();
     }
 
     // ─────────────────────────────────────────────

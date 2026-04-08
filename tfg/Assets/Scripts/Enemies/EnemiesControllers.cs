@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using BehaviorTree;
 
 /// <summary>
@@ -25,17 +26,45 @@ public class EnemiesControllers : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    /// <summary>Al cargar una nueva escena (nueva mazmorra) se limpia el estado de la sala anterior.</summary>
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        _activeEnemies.Clear();
+        _roomNormalEnemyCount = 0;
+        Debug.Log("[EnemiesControllers] Lista de enemigos limpiada para nueva escena.");
+    }
+
     // ─────────────────────────────────────────────
     // LISTA DE ENEMIGOS ACTIVOS
     // ─────────────────────────────────────────────
 
     private readonly List<EnemyBase> _activeEnemies = new List<EnemyBase>();
 
+    // Contador de enemigos normales de la sala (excluye boss)
+    // Se usa para calcular el bonus de limpieza al derrotarlos a todos
+    private int _roomNormalEnemyCount = 0;
+
     /// <summary>Registra un enemigo al spawnear. Llamado desde EnemyBase.Start().</summary>
     public void RegisterEnemy(EnemyBase enemy)
     {
         if (!_activeEnemies.Contains(enemy))
+        {
             _activeEnemies.Add(enemy);
+
+            // Solo contar enemigos normales para el bonus de limpieza (no el boss)
+            if (!(enemy is BossController))
+                _roomNormalEnemyCount++;
+        }
     }
 
     /// <summary>Elimina un enemigo de la lista al morir. Llamado desde EnemyBase.Die().</summary>
@@ -96,6 +125,17 @@ public class EnemiesControllers : MonoBehaviour
     private void OnRoomCleared()
     {
         Debug.Log("[EnemiesControllers] Sala limpia.");
+
+        // ── Bonus de limpieza por matar a todos los enemigos normales ──
+        // Formula: 20 * n_enemigos + 300 de bonus por limpieza total
+        if (_roomNormalEnemyCount > 0 && GameManager.Instance != null)
+        {
+            int clearBonus = 20 * _roomNormalEnemyCount + 300;
+            GameManager.Instance.AddCoins(clearBonus);
+            Debug.Log($"[EnemiesControllers] Bonus limpieza: +{clearBonus} monedas " +
+                      $"(20x{_roomNormalEnemyCount} enemigos + 300)");
+        }
+        _roomNormalEnemyCount = 0;
 
         // Cerrar metricas (guarda HP restante y detiene el timer)
         if (MetricsTracker.Instance != null)

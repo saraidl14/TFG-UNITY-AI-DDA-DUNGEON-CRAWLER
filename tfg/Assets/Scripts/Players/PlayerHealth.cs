@@ -146,6 +146,10 @@ public class PlayerHealth : MonoBehaviour
         if (MetricsTracker.Instance != null)
             MetricsTracker.Instance.RegisterDeath();
 
+        // Reiniciar boost de velocidad: el jugador pierde el progreso de mazmorras
+        if (GameManager.Instance != null)
+            GameManager.Instance.ResetSpeedBoost();
+
         // Notificar a todos los suscriptores (GameManager, ScoreManager, etc.)
         OnPlayerDeath?.Invoke();
     }

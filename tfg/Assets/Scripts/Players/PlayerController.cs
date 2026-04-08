@@ -17,10 +17,19 @@ public class PlayerController : MonoBehaviour
     public Camera playerCamera;
     public float mouseSensitivity = 100f;
 
+    [Header("Boost de Velocidad")]
+    [Tooltip("Velocidad extra ganada por cada boss derrotado.")]
+    public float speedBoostPerBoss = 0.5f;
+    [Tooltip("Maximo boost de velocidad acumulable.")]
+    public float maxSpeedBoost = 3f;
+
     private CharacterController controller;
     private Vector3 velocity;
     private float xRotation = 0f;
     private bool isGrounded;
+
+    // Boost acumulado (se reinicia al morir, persiste entre mazmorras via GameManager)
+    private float _speedBoost = 0f;
 
     private void Awake()
     {
@@ -29,6 +38,27 @@ public class PlayerController : MonoBehaviour
 
         if (playerCamera == null)
             playerCamera = GetComponentInChildren<Camera>();
+    }
+
+    private void Start()
+    {
+        // Recuperar boost acumulado de mazmorras anteriores
+        if (GameManager.Instance != null)
+            _speedBoost = GameManager.Instance.AccumulatedSpeedBoost;
+    }
+
+    /// <summary>Añade boost de velocidad (llamado por GameManager al derrotar al boss).</summary>
+    public void AddSpeedBoost()
+    {
+        _speedBoost = Mathf.Min(_speedBoost + speedBoostPerBoss, maxSpeedBoost);
+        Debug.Log($"[PlayerController] Speed boost: +{speedBoostPerBoss} | Total: {_speedBoost} | Velocidad: {moveSpeed + _speedBoost}");
+    }
+
+    /// <summary>Reinicia el boost a 0 (llamado al morir el jugador).</summary>
+    public void ResetSpeedBoost()
+    {
+        _speedBoost = 0f;
+        Debug.Log("[PlayerController] Speed boost reiniciado.");
     }
 
     private void Update()
@@ -45,7 +75,7 @@ public class PlayerController : MonoBehaviour
         float z = Input.GetAxis("Vertical");   // W/S
 
         Vector3 move = transform.right * x + transform.forward * z;
-        controller.Move(move * moveSpeed * Time.deltaTime);
+        controller.Move(move * (moveSpeed + _speedBoost) * Time.deltaTime);
 
         // Gravedad y salto
         if (isGrounded && velocity.y < 0)
