@@ -37,6 +37,9 @@ public abstract class EnemyBase : MonoBehaviour
         // Registrarse en EnemiesControllers para el tracking DDA
         if (EnemiesControllers.Instance != null)
             EnemiesControllers.Instance.RegisterEnemy(this);
+
+        // Aplicar scaling del nivel actual al spawnar
+        ApplyCurrentDifficultyScaling();
     }
 
     protected virtual void Update()
@@ -73,6 +76,28 @@ public abstract class EnemyBase : MonoBehaviour
 
     /// <summary>Devuelve la salud actual del enemigo (usado por PlayerCombat para detectar muertes).</summary>
     public float GetCurrentHealth() => currentHealth;
+
+    /// <summary>
+    /// Aplica el scaling del nivel de dificultad actual al spawnear.
+    /// Cada subclase guarda sus stats base en Awake() ANTES de llamar a Start(),
+    /// por lo que aqui ya estan disponibles y se multiplican correctamente.
+    /// </summary>
+    protected void ApplyCurrentDifficultyScaling()
+    {
+        if (DifficultyManager.Instance == null) return;
+
+        float hpMult  = DifficultyManager.Instance.GetHPScaling();
+        float dmgMult = DifficultyManager.Instance.GetDamageScaling();
+        float spdMult = DifficultyManager.Instance.GetSpeedScaling();
+
+        maxHealth     = maxHealth  * hpMult;
+        currentHealth = maxHealth;
+        damage        = damage     * dmgMult;
+        moveSpeed     = moveSpeed  * spdMult;
+
+        Debug.Log($"[{GetType().Name}] Scaling nivel {DifficultyManager.Instance.currentLevel} aplicado | " +
+                  $"HP:{maxHealth:F0} | DMG:{damage:F1} | SPD:{moveSpeed:F2}");
+    }
 
     protected bool PlayerInRange()
     {

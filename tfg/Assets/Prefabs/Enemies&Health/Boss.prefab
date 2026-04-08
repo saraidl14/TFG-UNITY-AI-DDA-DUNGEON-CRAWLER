@@ -12,8 +12,8 @@ GameObject:
   - component: {fileID: 6637977974520858828}
   - component: {fileID: 8152550522183805724}
   - component: {fileID: 3038520599810554690}
-  - component: {fileID: 2231051853928653661}
   - component: {fileID: 5582424808572662895}
+  - component: {fileID: 1816967044149152165}
   m_Layer: 6
   m_Name: Boss
   m_TagString: Untagged
@@ -107,25 +107,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &2231051853928653661
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7137056878132403367}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8dcf694f2dd0e5840b245bed5e60e34f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxHealth: 100
-  damage: 10
-  moveSpeed: 3
-  attackRange: 1.5
-  attackCooldown: 1
-  detectionRange: 8
-  maxRoamDistance: 8
 --- !u!195 &5582424808572662895
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -148,3 +129,22 @@ NavMeshAgent:
   m_BaseOffset: 0.5
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &1816967044149152165
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7137056878132403367}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8dcf694f2dd0e5840b245bed5e60e34f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 100
+  damage: 10
+  moveSpeed: 3
+  attackRange: 1.5
+  attackCooldown: 1
+  detectionRange: 8
+  maxRoamDistance: 8
