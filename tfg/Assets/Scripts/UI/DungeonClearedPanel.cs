@@ -54,6 +54,23 @@ public class DungeonClearedPanel : MonoBehaviour
     public Button botonSiguiente;
     public Button botonMenu;
 
+    // ─────────────────────────────────────────────
+    // MODO HARDCORE
+    // ─────────────────────────────────────────────
+
+    [Header("Modo Hardcore (solo nivel 10)")]
+    [Tooltip("Seccion con la pregunta del modo hardcore. Se activa/desactiva automaticamente.")]
+    public GameObject hardcoreSection;
+
+    [Tooltip("Texto de la pregunta. Por ejemplo: '¿Deseas entrar al MODO HARDCORE?'")]
+    public TMP_Text hardcoreQuestionText;
+
+    [Tooltip("Boton SI: activa el modo hardcore.")]
+    public Button botonHardcoreSi;
+
+    [Tooltip("Boton NO: continua la partida normal.")]
+    public Button botonHardcoreNo;
+
     [Header("Escenas")]
     public string mainMenuSceneName = "Start";
 
@@ -93,8 +110,13 @@ public class DungeonClearedPanel : MonoBehaviour
 
     private void Start()
     {
-        if (botonSiguiente != null) botonSiguiente.onClick.AddListener(OnSiguienteMazmorra);
-        if (botonMenu      != null) botonMenu.onClick.AddListener(OnMenuPrincipal);
+        if (botonSiguiente    != null) botonSiguiente.onClick.AddListener(OnSiguienteMazmorra);
+        if (botonMenu         != null) botonMenu.onClick.AddListener(OnMenuPrincipal);
+        if (botonHardcoreSi   != null) botonHardcoreSi.onClick.AddListener(OnHardcoreSi);
+        if (botonHardcoreNo   != null) botonHardcoreNo.onClick.AddListener(OnHardcoreNo);
+
+        // Ocultar seccion hardcore por defecto
+        if (hardcoreSection != null) hardcoreSection.SetActive(false);
 
         // Ocultar solo el Panel (no el Canvas padre)
         gameObject.SetActive(false);
@@ -237,10 +259,32 @@ public class DungeonClearedPanel : MonoBehaviour
 
         if (boostTotalText != null)
         {
-            // Velocidad base del PlayerController es 5f
             float velocidadTotal = 5f + gm.AccumulatedSpeedBoost;
             boostTotalText.text = $"Velocidad actual: {velocidadTotal:F1}";
         }
+
+        // ── Modo Hardcore (solo si nivel DDA = 10) ──
+        bool esNivel10 = (dm != null && dm.currentLevel >= 10)
+                      || gm.CurrentDifficultyLevel >= 10;
+
+        if (hardcoreSection != null)
+        {
+            hardcoreSection.SetActive(esNivel10);
+
+            if (esNivel10 && hardcoreQuestionText != null)
+            {
+                hardcoreQuestionText.text =
+                    "Has derrotado al boss en el nivel mas alto.\n" +
+                    "¿Deseas entrar al MODO HARDCORE?\n" +
+                    "Todos los enemigos al nivel maximo. Multiples bosses.\n" +
+                    "No hay vuelta atras.";
+            }
+        }
+
+        // Ocultar boton "Siguiente" si se muestra la pregunta de Hardcore
+        // (el jugador debe elegir SI o NO, no puede saltar)
+        if (botonSiguiente != null)
+            botonSiguiente.gameObject.SetActive(!esNivel10);
     }
 
     // ─────────────────────────────────────────────
@@ -260,7 +304,6 @@ public class DungeonClearedPanel : MonoBehaviour
 
     private void OnMenuPrincipal()
     {
-        // Bloquear input y restaurar tiempo antes de cambiar de escena
         _canDismiss    = false;
         Time.timeScale = 1f;
 
@@ -269,5 +312,23 @@ public class DungeonClearedPanel : MonoBehaviour
         if (GameManager.Instance       != null) GameManager.Instance.ResetSpeedBoost();
 
         UnityEngine.SceneManagement.SceneManager.LoadScene(mainMenuSceneName);
+    }
+
+    private void OnHardcoreSi()
+    {
+        _canDismiss = false;
+        Hide();
+
+        if (GameManager.Instance != null)
+            GameManager.Instance.StartHardcoreMode();
+    }
+
+    private void OnHardcoreNo()
+    {
+        _canDismiss = false;
+        Hide();
+
+        if (GameManager.Instance != null)
+            GameManager.Instance.DeclineHardcoreMode();
     }
 }

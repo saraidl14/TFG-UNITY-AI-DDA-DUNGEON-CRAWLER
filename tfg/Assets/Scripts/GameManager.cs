@@ -124,6 +124,42 @@ public class GameManager : MonoBehaviour
     }
 
     // ─────────────────────────────────────────────
+    // MODO HARDCORE
+    // ─────────────────────────────────────────────
+
+    /// <summary>
+    /// True cuando el jugador ha activado el modo Hardcore.
+    /// En este modo todos los enemigos estan al nivel maximo y hay varios bosses.
+    /// Se activa al derrotar al boss en nivel de dificultad 10.
+    /// </summary>
+    public bool HardcoreMode { get; private set; } = false;
+
+    /// <summary>
+    /// Activa el modo Hardcore y carga una nueva mazmorra.
+    /// Llamado desde DungeonClearedPanel cuando el jugador acepta el reto.
+    /// </summary>
+    public void StartHardcoreMode()
+    {
+        HardcoreMode = true;
+        Debug.Log("[GameManager] *** MODO HARDCORE ACTIVADO ***");
+
+        // Forzar nivel maximo en el DDA
+        if (DifficultyManager.Instance != null)
+            DifficultyManager.Instance.currentLevel = 10;
+
+        LoadGameScene();
+    }
+
+    /// <summary>
+    /// El jugador rechazo el modo Hardcore. Continua la partida normal.
+    /// </summary>
+    public void DeclineHardcoreMode()
+    {
+        Debug.Log("[GameManager] Modo Hardcore rechazado. Continuando partida normal.");
+        LoadGameScene();
+    }
+
+    // ─────────────────────────────────────────────
     // PERSISTENCIA: MONEDAS Y POCIONES
     // ─────────────────────────────────────────────
 
