@@ -97,17 +97,27 @@ public class EnemiesControllers : MonoBehaviour
         {
             if (enemy == null) continue;
 
-            // Escalar usando el metodo del enemigo si lo implementa
-            SlimeController slime = enemy as SlimeController;
-            if (slime != null) { slime.ApplyDifficultyScaling(hp, dmg, spd); continue; }
-
+            // ── Boss: usa su propia tabla de stats, ignora multiplicadores ──
             BossController boss = enemy as BossController;
             if (boss != null) { boss.ApplyDifficultyScaling(hp, dmg, spd); continue; }
 
-            // Fallback generico: escalar directamente los campos de EnemyBase
-            enemy.maxHealth  = enemy.maxHealth  * hp;
-            enemy.damage     = enemy.damage     * dmg;
-            enemy.moveSpeed  = enemy.moveSpeed  * spd;
+            // ── Enemigos con controlador propio: delegar en su metodo ──
+            // (cuando se implementen SkeletonController, GoblinController, etc.
+            //  añadir un bloque identico al de SlimeController)
+
+            SlimeController slime = enemy as SlimeController;
+            if (slime != null) { slime.ApplyDifficultyScaling(hp, dmg, spd); continue; }
+
+            // TODO: SkeletonController  → skeleton.ApplyDifficultyScaling(hp, dmg, spd)
+            // TODO: GoblinController    → goblin.ApplyDifficultyScaling(hp, dmg, spd)
+            // TODO: OrcController       → orc.ApplyDifficultyScaling(hp, dmg, spd)
+            // TODO: SpiderController    → spider.ApplyDifficultyScaling(hp, dmg, spd)
+            // TODO: MageController      → mage.ApplyDifficultyScaling(hp, dmg, spd)
+
+            // ── Fallback generico para cualquier EnemyBase sin controlador propio ──
+            enemy.maxHealth = enemy.maxHealth * hp;
+            enemy.damage    = enemy.damage    * dmg;
+            enemy.moveSpeed = enemy.moveSpeed * spd;
         }
 
         Debug.Log($"[EnemiesControllers] Scaling aplicado a {_activeEnemies.Count} enemigos " +
