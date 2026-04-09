@@ -467,6 +467,10 @@ MonoBehaviour:
   boostTotalText: {fileID: 924003634}
   botonSiguiente: {fileID: 1504674007}
   botonMenu: {fileID: 2011271074}
+  hardcoreSection: {fileID: 0}
+  hardcoreQuestionText: {fileID: 0}
+  botonHardcoreSi: {fileID: 0}
+  botonHardcoreNo: {fileID: 0}
   mainMenuSceneName: Start
   inputDelay: 0.5
 --- !u!1 &370699229
@@ -1547,6 +1551,7 @@ GameObject:
   m_Component:
   - component: {fileID: 950072333}
   - component: {fileID: 950072334}
+  - component: {fileID: 950072335}
   m_Layer: 5
   m_Name: HUD
   m_TagString: Untagged
@@ -1594,6 +1599,24 @@ MonoBehaviour:
   damageFlash: {fileID: 590205155}
   flashDuration: 0.2
   flashMaxAlpha: 0.35
+--- !u!114 &950072335
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 950072332}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 193f6858bedbb7345a8de1193a22306b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dificultadText: {fileID: 0}
+  ddaNotifText: {fileID: 0}
+  notifDuracion: 3
+  scoreText: {fileID: 0}
+  monedasText: {fileID: 0}
+  mazmorraText: {fileID: 0}
 --- !u!1 &974528597
 GameObject:
   m_ObjectHideFlags: 0

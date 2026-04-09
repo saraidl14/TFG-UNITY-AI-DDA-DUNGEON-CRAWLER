@@ -3,19 +3,23 @@ using UnityEngine.UI;
 
 /// <summary>
 /// Barra de vida flotante sobre los enemigos.
-/// Vive en un Canvas World Space hijo del enemigo y siempre mira a la camara.
+///
+/// IMPORTANTE: este script debe ir en el objeto RAIZ del enemigo (no en el Canvas).
+/// El Canvas (HealthBarCanvas) es un hijo del enemigo y se referencia con "healthBarCanvas".
 ///
 /// Colores:
-///   Verde  → HP > 60%
-///   Amarillo → HP 30-60%
-///   Rojo   → HP < 30%
+///   Verde    → HP > 60%
+///   Naranja  → HP 30-60%
+///   Rojo     → HP < 30%
 ///
-/// Setup en Unity:
-///   EnemigoPrefab
-///   └── HealthBarCanvas  (Canvas - World Space, Sort Order 5)
-///       ├── Fondo        (Image - color oscuro semitransparente, anclada a toda el area)
-///       └── Fill         (Image - Image Type = Filled, Fill Method = Horizontal)
-///                        ← asignar al campo "fillImage" del script
+/// Jerarquia:
+///   EnemigoPrefab           ← EnemyHealthBar.cs va AQUI
+///   └── HealthBarCanvas     (Canvas - World Space, Sort Order 5) ← asignar a "healthBarCanvas"
+///       └── Slider          ← asignar a "healthSlider"
+///           ├── Background
+///           ├── Fill Area
+///           │   └── Fill    ← asignar a "fillImage"
+///           └── Handle Slide Area  ← ELIMINAR o desactivar
 /// </summary>
 public class EnemyHealthBar : MonoBehaviour
 {
@@ -24,7 +28,13 @@ public class EnemyHealthBar : MonoBehaviour
     // ─────────────────────────────────────────────
 
     [Header("Referencias")]
-    [Tooltip("Image con Image Type = Filled para representar la vida.")]
+    [Tooltip("Canvas hijo del enemigo que contiene la barra de vida.")]
+    public GameObject healthBarCanvas;
+
+    [Tooltip("Slider de la barra de vida.")]
+    public Slider healthSlider;
+
+    [Tooltip("Image Fill para cambiar el color segun HP (el Fill hijo del Slider).")]
     public Image fillImage;
 
     // ─────────────────────────────────────────────
@@ -32,9 +42,9 @@ public class EnemyHealthBar : MonoBehaviour
     // ─────────────────────────────────────────────
 
     [Header("Colores segun HP")]
-    public Color colorAlto  = Color.green;                         // HP > 60%
-    public Color colorMedio = new Color(1f, 0.65f, 0f);           // HP 30-60% (naranja)
-    public Color colorBajo  = Color.red;                           // HP < 30%
+    public Color colorAlto  = Color.green;
+    public Color colorMedio = new Color(1f, 0.65f, 0f);
+    public Color colorBajo  = Color.red;
 
     // ─────────────────────────────────────────────
     // COMPORTAMIENTO
@@ -44,7 +54,7 @@ public class EnemyHealthBar : MonoBehaviour
     [Tooltip("Oculta la barra cuando el enemigo tiene la vida al maximo.")]
     public bool ocultarEnMaxHP = true;
 
-    [Tooltip("Offset de altura sobre el pivote del enemigo (ajustar segun tamanyo del modelo).")]
+    [Tooltip("Offset de altura sobre el pivote del enemigo.")]
     public float alturaOffset = 1.8f;
 
     // ─────────────────────────────────────────────
@@ -61,18 +71,29 @@ public class EnemyHealthBar : MonoBehaviour
 
     private void Awake()
     {
-        // Buscar el EnemyBase en el padre (el enemigo que nos contiene)
-        _enemy          = GetComponentInParent<EnemyBase>();
-        _mainCamera     = Camera.main;
-        _barraTransform = transform;
+        // El script esta en el enemigo; buscar EnemyBase en este mismo objeto o en el padre
+        _enemy      = GetComponent<EnemyBase>();
+        if (_enemy == null)
+            _enemy  = GetComponentInParent<EnemyBase>();
+
+        _mainCamera = Camera.main;
+
+        // Si no se asigno el canvas en el Inspector, buscarlo automaticamente
+        if (healthBarCanvas == null)
+            healthBarCanvas = GetComponentInChildren<Canvas>(true)?.gameObject;
+
+        if (healthBarCanvas != null)
+            _barraTransform = healthBarCanvas.transform;
 
         if (_enemy == null)
-            Debug.LogWarning("[EnemyHealthBar] No se encontro EnemyBase en el padre.");
+            Debug.LogWarning("[EnemyHealthBar] No se encontro EnemyBase en este objeto.", this);
+        if (healthBarCanvas == null)
+            Debug.LogWarning("[EnemyHealthBar] No se encontro el Canvas de la barra de vida.", this);
     }
 
     private void LateUpdate()
     {
-        if (_enemy == null) return;
+        if (_enemy == null || healthBarCanvas == null) return;
 
         // Buscar camara si todavia no esta (por spawn delay)
         if (_mainCamera == null)
@@ -81,43 +102,50 @@ public class EnemyHealthBar : MonoBehaviour
             if (_mainCamera == null) return;
         }
 
-        // ── Posicion: encima del enemigo ──────────
-        _barraTransform.position = _enemy.transform.position + Vector3.up * alturaOffset;
-
-        // ── Billboard: siempre mirar a la camara ──
-        _barraTransform.LookAt(
-            _barraTransform.position + _mainCamera.transform.rotation * Vector3.forward,
-            _mainCamera.transform.rotation * Vector3.up
-        );
-
         // ── Ratio de vida ─────────────────────────
         float ratio = _enemy.maxHealth > 0
             ? _enemy.GetCurrentHealth() / _enemy.maxHealth
             : 0f;
 
-        // Ocultar si vida al maximo
+        // ── Ocultar si vida al maximo ──────────────
+        // IMPORTANTE: controlamos el Canvas hijo, NO este gameObject.
+        // Asi el script sigue corriendo aunque la barra este oculta.
         if (ocultarEnMaxHP)
         {
             bool mostrar = ratio < 0.999f;
-            if (!mostrar)
-            {
-                gameObject.SetActive(false);
-                return;
-            }
-            gameObject.SetActive(true);
+            healthBarCanvas.SetActive(mostrar);
+            if (!mostrar) return;
+        }
+        else
+        {
+            healthBarCanvas.SetActive(true);
         }
 
-        // ── Actualizar fill ───────────────────────
-        if (fillImage == null) return;
+        // ── Posicion: encima del enemigo ──────────
+        if (_barraTransform != null)
+        {
+            _barraTransform.position = transform.position + Vector3.up * alturaOffset;
 
-        fillImage.fillAmount = Mathf.Clamp01(ratio);
+            // ── Billboard: siempre mirar a la camara ──
+            _barraTransform.LookAt(
+                _barraTransform.position + _mainCamera.transform.rotation * Vector3.forward,
+                _mainCamera.transform.rotation * Vector3.up
+            );
+        }
 
-        // Color segun porcentaje de vida
-        if (ratio > 0.6f)
-            fillImage.color = colorAlto;
-        else if (ratio > 0.3f)
-            fillImage.color = colorMedio;
-        else
-            fillImage.color = colorBajo;
+        // ── Actualizar Slider ─────────────────────
+        if (healthSlider != null)
+            healthSlider.value = Mathf.Clamp01(ratio);
+
+        // ── Actualizar color del Fill ─────────────
+        if (fillImage != null)
+        {
+            if (ratio > 0.6f)
+                fillImage.color = colorAlto;
+            else if (ratio > 0.3f)
+                fillImage.color = colorMedio;
+            else
+                fillImage.color = colorBajo;
+        }
     }
 }
