@@ -1319,6 +1319,7 @@ GameObject:
   - component: {fileID: 869951863}
   - component: {fileID: 869951867}
   - component: {fileID: 869951868}
+  - component: {fileID: 869951869}
   m_Layer: 0
   m_Name: GameController
   m_TagString: Untagged
@@ -1407,6 +1408,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 21db453d9e6407549bf56206262ec1de, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &869951869
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 869951862}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a5ac11cc976e418e8d13136b07e1f52, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_AgentTypeID: 0
+  m_CollectObjects: 0
+  m_Size: {x: 10, y: 10, z: 10}
+  m_Center: {x: 0, y: 2, z: 0}
+  m_LayerMask:
+    serializedVersion: 2
+    m_Bits: 8
+  m_UseGeometry: 1
+  m_DefaultArea: 0
+  m_GenerateLinks: 0
+  m_IgnoreNavMeshAgent: 1
+  m_IgnoreNavMeshObstacle: 1
+  m_OverrideTileSize: 0
+  m_TileSize: 256
+  m_OverrideVoxelSize: 0
+  m_VoxelSize: 0.16666667
+  m_MinRegionArea: 2
+  m_NavMeshData: {fileID: 0}
+  m_BuildHeightMesh: 0
 --- !u!1 &924003632
 GameObject:
   m_ObjectHideFlags: 0
@@ -3105,6 +3137,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1347930903}
     - target: {fileID: 6904829615355644262, guid: df4abf97c5b8eac46b38ca8a10d43a44, type: 3}
+      propertyPath: navMeshSurface
+      value: 
+      objectReference: {fileID: 869951869}
+    - target: {fileID: 6904829615355644262, guid: df4abf97c5b8eac46b38ca8a10d43a44, type: 3}
       propertyPath: topRooms.Array.data[0]
       value: 
       objectReference: {fileID: 239202246138669130, guid: c14fb86207df93848a2a610f65d2b12e, type: 3}
@@ -3672,8 +3708,8 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 705507995}
+  - {fileID: 1996258744}
   - {fileID: 1725836503}
   - {fileID: 2022068069}
   - {fileID: 869951866}
-  - {fileID: 1996258744}
   - {fileID: 1797030378}

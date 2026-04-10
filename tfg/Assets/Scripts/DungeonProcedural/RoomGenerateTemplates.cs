@@ -116,6 +116,11 @@ public class RoomGenerateTemplates : MonoBehaviour
             Debug.LogWarning("[RoomGenerateTemplates] NavMeshSurface no asignado en el Inspector.");
         }
 
+        // Esperar 2 frames para que el NavMeshAgent registre el NavMesh recien horneado.
+        // Sin esta espera los agentes no encuentran NavMesh y se warpean a la esquina.
+        yield return null;
+        yield return null;
+
         SpawnPlayer();
         SpawnEnemies();
         SpawnHelps();
@@ -171,8 +176,10 @@ public class RoomGenerateTemplates : MonoBehaviour
         if (boss != null)
         {
             Vector3 bossCenter = GetRoomCenter(bossRoom);
-            Vector3 bossSpawn  = GetNavMeshPosition(bossCenter, 10f);
-            Instantiate(boss, bossSpawn, Quaternion.identity);
+            GameObject bossInstance = Instantiate(boss, bossCenter, Quaternion.identity);
+            NavMeshAgent bossAgent = bossInstance.GetComponent<NavMeshAgent>();
+            if (bossAgent != null)
+                bossAgent.Warp(bossCenter);
         }
         else
             Debug.LogError("[RoomGenerateTemplates] El prefab BOSS no esta asignado en el Inspector.");
@@ -209,11 +216,14 @@ public class RoomGenerateTemplates : MonoBehaviour
 
             for (int i = 0; i < enemiesPerRoom; i++)
             {
-                // Pequeño offset aleatorio desde el centro para que no se apilen
-                Vector3 offset = new Vector3(Random.Range(-2f, 2f), 0f, Random.Range(-2f, 2f));
-                Vector3 spawnPos = GetNavMeshPosition(roomCenter + offset, 5f);
+                // Warp coloca al NavMeshAgent exactamente en roomCenter dentro del NavMesh.
+                // Sin Warp, el agente busca el punto mas cercano al (0,0,0) al activarse y todos
+                // acaban en la misma esquina, independientemente de donde se instanciaron.
                 GameObject prefab = validTypes[Random.Range(0, validTypes.Count)];
-                Instantiate(prefab, spawnPos, Quaternion.identity);
+                GameObject enemy = Instantiate(prefab, roomCenter, Quaternion.identity);
+                NavMeshAgent agent = enemy.GetComponent<NavMeshAgent>();
+                if (agent != null)
+                    agent.Warp(roomCenter);
             }
         }
 
