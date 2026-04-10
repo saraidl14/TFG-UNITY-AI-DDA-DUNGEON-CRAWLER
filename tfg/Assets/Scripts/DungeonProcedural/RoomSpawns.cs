@@ -54,13 +54,16 @@ public class RoomSpawns : MonoBehaviour
     {
         if (other.CompareTag("SpawnPoint"))
         {
-            if (other.GetComponent<RoomSpawns>().spawned==false && spawned==false)
+            RoomSpawns otherSpawn = other.GetComponent<RoomSpawns>();
+            if (otherSpawn == null) return; // el SpawnPoint no tiene RoomSpawns, ignorar
+
+            if (otherSpawn.spawned == false && spawned == false)
             {
-                Instantiate(templates.closedRoom, transform.position, Quaternion.identity);
+                if (templates != null && templates.closedRoom != null)
+                    Instantiate(templates.closedRoom, transform.position, Quaternion.identity);
                 Destroy(gameObject);
             }
             spawned = true;
-            
         }
     }
 

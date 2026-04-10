@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
+using Unity.AI.Navigation;
 
 /// <summary>
 /// Genera el dungeon procedimental y spawnea enemigos segun el nivel de dificultad DDA.
@@ -72,6 +74,10 @@ public class RoomGenerateTemplates : MonoBehaviour
     [Header("Jugador")]
     public GameObject player;
 
+    [Header("NavMesh")]
+    [Tooltip("NavMeshSurface del GameController. Se hornea tras generar todas las salas.")]
+    public NavMeshSurface navMeshSurface;
+
     // ─────────────────────────────────────────────
     // CICLO DE VIDA
     // ─────────────────────────────────────────────
@@ -97,6 +103,17 @@ public class RoomGenerateTemplates : MonoBehaviour
                 lastCount = rooms.Count;
             }
             yield return null;
+        }
+
+        // Hornear NavMesh con todas las salas ya generadas
+        if (navMeshSurface != null)
+        {
+            navMeshSurface.BuildNavMesh();
+            Debug.Log("[RoomGenerateTemplates] NavMesh horneado correctamente.");
+        }
+        else
+        {
+            Debug.LogWarning("[RoomGenerateTemplates] NavMeshSurface no asignado en el Inspector.");
         }
 
         SpawnPlayer();
@@ -149,10 +166,16 @@ public class RoomGenerateTemplates : MonoBehaviour
         if (DifficultyManager.Instance != null)
             level = Mathf.Clamp(DifficultyManager.Instance.currentLevel, 1, 10);
 
-        // Boss en la sala mas lejana
+        // Boss en el centro de la sala mas lejana
         GameObject bossRoom = GetFurthestRoom();
         if (boss != null)
-            Instantiate(boss, bossRoom.transform.position, Quaternion.identity);
+        {
+            Vector3 bossCenter = GetRoomCenter(bossRoom);
+            Vector3 bossSpawn  = GetNavMeshPosition(bossCenter, 10f);
+            Instantiate(boss, bossSpawn, Quaternion.identity);
+        }
+        else
+            Debug.LogError("[RoomGenerateTemplates] El prefab BOSS no esta asignado en el Inspector.");
 
         // Config de spawn para este nivel
         int            enemiesPerRoom = GetEnemiesPerRoom(level);
@@ -169,28 +192,33 @@ public class RoomGenerateTemplates : MonoBehaviour
 
         if (validTypes.Count == 0)
         {
-            Debug.LogWarning("[RoomGenerateTemplates] No hay prefabs de enemigos asignados.");
+            Debug.LogError("[RoomGenerateTemplates] No hay prefabs validos para nivel " + level +
+                           ". Comprueba que el prefab SLIME esta asignado en el Inspector.");
             return;
         }
+
+        Debug.Log($"[RoomGenerateTemplates] Spawneando nivel {level} | " +
+                  $"{enemiesPerRoom} enemigos/sala | Salas: {rooms.Count - 1}");
 
         // Spawnear enemigos en cada sala (excepto la del boss)
         foreach (GameObject room in rooms)
         {
             if (room == bossRoom) continue;
 
+            Vector3 roomCenter = GetRoomCenter(room);
+
             for (int i = 0; i < enemiesPerRoom; i++)
             {
-                // Offset aleatorio para que no se apilen
-                Vector3 offset = new Vector3(
-                    Random.Range(-3f, 3f),
-                    0f,
-                    Random.Range(-3f, 3f)
-                );
-
+                // Pequeño offset aleatorio desde el centro para que no se apilen
+                Vector3 offset = new Vector3(Random.Range(-2f, 2f), 0f, Random.Range(-2f, 2f));
+                Vector3 spawnPos = GetNavMeshPosition(roomCenter + offset, 5f);
                 GameObject prefab = validTypes[Random.Range(0, validTypes.Count)];
-                Instantiate(prefab, room.transform.position + offset, Quaternion.identity);
+                Instantiate(prefab, spawnPos, Quaternion.identity);
             }
         }
+
+        // Boss tambien en punto valido del NavMesh
+        // (ya se instancio antes, pero si queremos reubicarlo podemos hacerlo aqui)
 
         Debug.Log($"[RoomGenerateTemplates] Nivel {level} | " +
                   $"{enemiesPerRoom} enemigos/sala | " +
@@ -249,5 +277,53 @@ public class RoomGenerateTemplates : MonoBehaviour
         List<string> names = new List<string>();
         foreach (GameObject t in types) names.Add(t.name);
         return names;
+    }
+
+    /// <summary>
+    /// Devuelve el centro del suelo de la sala usando el Collider de la capa "Suelo".
+    /// NO usa los SpawnPoint existentes porque esos son puntos de conexion entre salas.
+    /// </summary>
+    private Vector3 GetRoomCenter(GameObject room)
+    {
+        int floorLayer = LayerMask.NameToLayer("Suelo");
+        Collider[] colliders = room.GetComponentsInChildren<Collider>();
+
+        Bounds floorBounds = new Bounds();
+        bool found = false;
+        foreach (Collider c in colliders)
+        {
+            if (c.gameObject.layer != floorLayer) continue;
+            if (!found) { floorBounds = c.bounds; found = true; }
+            else floorBounds.Encapsulate(c.bounds);
+        }
+
+        if (found)
+        {
+            Vector3 center = new Vector3(floorBounds.center.x,
+                                         floorBounds.max.y + 0.05f,
+                                         floorBounds.center.z);
+            Debug.Log($"[RoomCenter] {room.name} → suelo encontrado → {center}");
+            return center;
+        }
+
+        Debug.LogWarning($"[RoomCenter] {room.name} → SIN collider en capa 'Suelo' " +
+                         $"(layer={LayerMask.NameToLayer("Suelo")}) → fallback: {room.transform.position}. " +
+                         $"Colliders en la sala: {room.GetComponentsInChildren<Collider>().Length}");
+        return room.transform.position;
+    }
+
+    /// <summary>
+    /// Busca el punto valido mas cercano en el NavMesh a partir de una posicion origen.
+    /// Si no encuentra ningun punto en el radio dado, devuelve la posicion original.
+    /// </summary>
+    private Vector3 GetNavMeshPosition(Vector3 origin, float searchRadius)
+    {
+        NavMeshHit hit;
+        if (NavMesh.SamplePosition(origin, out hit, searchRadius, NavMesh.AllAreas))
+            return hit.position;
+
+        Debug.LogWarning($"[RoomGenerateTemplates] No se encontro punto NavMesh cerca de {origin}. " +
+                          "Usando posicion original.");
+        return origin;
     }
 }

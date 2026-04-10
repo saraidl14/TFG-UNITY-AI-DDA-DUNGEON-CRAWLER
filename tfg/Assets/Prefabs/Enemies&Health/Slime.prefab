@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 6069631012511903314}
   - component: {fileID: -7251613227861790127}
   - component: {fileID: 5240632908796006591}
+  - component: {fileID: 7161219677320981014}
   m_Layer: 6
   m_Name: Slime
   m_TagString: Untagged
@@ -140,14 +141,34 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e1d0370a9c6f4d42a46d959eb1149b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  healthBarCanvas: {fileID: 3694220192471222188}
-  healthSlider: {fileID: 7305937148124834656}
   fillImage: {fileID: 2685651339322321659}
   colorAlto: {r: 0, g: 1, b: 0, a: 1}
   colorMedio: {r: 1, g: 0.65, b: 0, a: 1}
   colorBajo: {r: 1, g: 0, b: 0, a: 1}
   ocultarEnMaxHP: 1
   alturaOffset: 1.8
+--- !u!195 &7161219677320981014
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4691740097310613965}
+  m_Enabled: 1
+  m_AgentTypeID: 0
+  m_Radius: 0.5
+  m_Speed: 3.5
+  m_Acceleration: 8
+  avoidancePriority: 50
+  m_AngularSpeed: 120
+  m_StoppingDistance: 0
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 1
+  m_BaseOffset: 0.5
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 4
 --- !u!1001 &4873743651834412619
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -271,21 +292,5 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!1 &3694220192471222188 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8135618269734582759, guid: 5cc89c85520cb3c479c50477a38ab6ca, type: 3}
-  m_PrefabInstance: {fileID: 4873743651834412619}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &7305937148124834656 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2792481528912287019, guid: 5cc89c85520cb3c479c50477a38ab6ca, type: 3}
-  m_PrefabInstance: {fileID: 4873743651834412619}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 67db9e8f0e2ae9c40bc1e2b64352a6b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
