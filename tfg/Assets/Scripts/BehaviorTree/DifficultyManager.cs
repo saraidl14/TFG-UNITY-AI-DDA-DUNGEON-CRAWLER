@@ -108,100 +108,83 @@ public class DifficultyManager : MonoBehaviour
         totalScore += EvaluatePerfectStreakRule(mt.PerfectStreak);
         totalScore += EvaluateItemUsageRule(mt.ItemsUsed);
 
-        Debug.Log($"[DifficultyManager] Score DDA: {totalScore:F2}");
+        Debug.Log($"[DifficultyManager] Score DDA: {totalScore:F2} " +
+                  $"(daño={mt.DamageTaken} tiempo={mt.TimeTaken:F1}s " +
+                  $"HP={mt.HpRemaining} muertes={mt.DeathCount} " +
+                  $"streak={mt.PerfectStreak} items={mt.ItemsUsed})");
 
-        // Guardar en MetricsTracker para los nodos BT del arbol DDA
+        // Solo guardar el score — el BT-DDA en EnemiesControllers.EvaluateDDATree()
+        // es quien aplica el ajuste. Separar calculo de decision es el punto del TFG.
         mt.SetDDAScore(totalScore);
-
-        int adjustment = CalculateAdjustment(totalScore);
-        adjustment     = ApplyContextModifiers(adjustment, mt);
-
-        ApplyAdjustment(adjustment);
-
-        _roomsSinceLastAdjustment = 0;
-        _lastAdjustment           = adjustment;
     }
 
     // ─────────────────────────────────────────────
     // 6 REGLAS DDA
     // ─────────────────────────────────────────────
 
-    /// <summary>Regla 1 — PlayerDamageRule (25%)</summary>
+    /// <summary>
+    /// Regla 1 — PlayerDamageRule
+    /// Solo bonifica si no recibiste daño. Sin castigo: el HP restante ya refleja el daño recibido.
+    /// </summary>
     private float EvaluatePlayerDamageRule(float damageTaken)
     {
         float maxHP = 100f;
-        float pts;
-
-        if      (damageTaken <= 0f)              pts = 10f;
-        else if (damageTaken < maxHP * 0.2f)     pts =  5f;
-        else if (damageTaken > maxHP * 0.5f)     pts = -8f;
-        else                                     pts =  0f;
-
-        return pts * W_DAMAGE;
+        if (damageTaken <= 0f)          return 15f;  // Sin daño: excelente
+        if (damageTaken < maxHP * 0.2f) return  5f;  // Daño leve
+        return 0f;                                    // Daño alto: neutro (el HP restante ya penaliza)
     }
 
-    /// <summary>Regla 2 — EnemyKillSpeedRule (20%)</summary>
+    /// <summary>
+    /// Regla 2 — EnemyKillSpeedRule
+    /// Ganar rápido es el principal indicador de que el jugador domina el nivel.
+    /// </summary>
     private float EvaluateKillSpeedRule(float timeTaken)
     {
-        float pts;
-
-        if      (timeTaken < 30f)   pts =  8f;
-        else if (timeTaken <= 90f)  pts =  0f;
-        else if (timeTaken > 120f)  pts = -5f;
-        else                        pts =  0f;
-
-        return pts * W_KILL_SPEED;
+        if (timeTaken < 20f)  return 18f;  // Muy rápido: domina
+        if (timeTaken < 40f)  return 12f;  // Rápido: bien
+        if (timeTaken < 60f)  return 10f;  // Menos de 1 min: garantiza +1 aunque HP sea baja
+        if (timeTaken <= 90f) return  3f;  // Normal: ligero positivo
+        if (timeTaken > 120f) return -5f;  // Muy lento: costó mucho
+        return 0f;
     }
 
-    /// <summary>Regla 3 — HealthRemainingRule (20%)</summary>
+    /// <summary>
+    /// Regla 3 — HealthRemainingRule
+    /// Bonifica HP alta, penaliza ligeramente HP crítica.
+    /// </summary>
     private float EvaluateHealthRemainingRule(float hpRemaining)
     {
-        float hpPct = hpRemaining / 100f;
-        float pts;
-
-        if      (hpPct >= 1.0f)  pts = 12f;
-        else if (hpPct > 0.70f)  pts =  6f;
-        else if (hpPct >= 0.30f) pts =  0f;
-        else                     pts = -10f;
-
-        return pts * W_HEALTH;
+        if (hpRemaining >= 100f) return 10f;  // HP llena
+        if (hpRemaining >= 70f)  return  5f;  // HP alta
+        if (hpRemaining > 10f)   return  0f;  // HP media/baja: neutro
+        return -8f;                            // HP crítica (≤ 10): casi muerto
     }
 
-    /// <summary>Regla 4 — DeathCountRule (25%) — MAS IMPORTANTE</summary>
+    /// <summary>
+    /// Regla 4 — DeathCountRule — señal más importante de dificultad excesiva.
+    /// </summary>
     private float EvaluateDeathCountRule(int deaths)
     {
-        float pts;
-
-        if      (deaths == 0) pts =   0f;
-        else if (deaths == 1) pts = -12f;
-        else                  pts = -20f;
-
-        return pts * W_DEATHS;
+        if (deaths == 0) return  0f;
+        if (deaths == 1) return -15f;
+        return -25f;
     }
 
-    /// <summary>Regla 5 — PerfectStreakRule (15%)</summary>
+    /// <summary>Regla 5 — PerfectStreakRule</summary>
     private float EvaluatePerfectStreakRule(int streak)
     {
-        float pts;
-
-        if      (streak <= 0) pts =  0f;
-        else if (streak <= 2) pts =  3f;
-        else if (streak <= 4) pts =  8f;
-        else                  pts = 15f;
-
-        return pts * W_STREAK;
+        if (streak <= 0) return  0f;
+        if (streak <= 2) return  4f;
+        if (streak <= 4) return  8f;
+        return 12f;
     }
 
-    /// <summary>Regla 6 — ItemUsageRule (10%)</summary>
+    /// <summary>Regla 6 — ItemUsageRule</summary>
     private float EvaluateItemUsageRule(int itemsUsed)
     {
-        float pts;
-
-        if      (itemsUsed == 0) pts =  4f;
-        else if (itemsUsed <= 2) pts =  0f;
-        else                     pts = -6f;
-
-        return pts * W_ITEMS;
+        if (itemsUsed == 0) return 3f;
+        if (itemsUsed <= 2) return 0f;
+        return -3f;
     }
 
     // ─────────────────────────────────────────────
@@ -214,12 +197,12 @@ public class DifficultyManager : MonoBehaviour
     /// </summary>
     private int CalculateAdjustment(float score)
     {
-        if      (score >= 40f)  return  3;  // DOMINANDO
-        else if (score >= 25f)  return  2;  // EXCELENTE
-        else if (score >= 15f)  return  1;  // MUY BIEN
-        else if (score >= -14f) return  0;  // FLOW PERFECTO / EQUILIBRADO
-        else if (score >= -24f) return -1;  // LUCHANDO
-        else if (score >= -39f) return -2;  // MUY DIFICIL
+        if      (score >= 35f)  return  3;  // DOMINANDO  (sin daño + muy rápido)
+        else if (score >= 15f)  return  2;  // EXCELENTE  (rápido aunque haya recibido daño)
+        else if (score >= 1f)   return  1;  // BIEN       (ganó sin morir, cualquier ritmo)
+        else if (score >= -8f)  return  0;  // EQUILIBRADO
+        else if (score >= -18f) return -1;  // COSTÓ
+        else if (score >= -30f) return -2;  // MUY DIFÍCIL
         else                    return -3;  // IMPOSIBLE
     }
 
@@ -302,6 +285,8 @@ public class DifficultyManager : MonoBehaviour
     /// </summary>
     public void AdjustLevel(int amount)
     {
+        _lastAdjustment           = amount;
+        _roomsSinceLastAdjustment = 0;
         ApplyAdjustment(amount);
     }
 

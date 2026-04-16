@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87ae61dd66253564f8ec0ef5dc6fc4cb, type: 3}
+  m_Name: ArmaPrueba
+  m_EditorClassIdentifier: 
+  itemName: Item
+  icon: {fileID: -519989934, guid: 09ec3d51706da5845bfbe04964d36d97, type: 3}
+  description: Arma de corto alcance
+  itemType: 0
+  stackable: 0
+  maxStack: 1
+  baseDamage: 15
+  attackSpeed: 1
+  maxDurability: 100
+  rarity: 0
+  currentDurability: 100
+  upgradeLevel: 0
+  comboHits: 2

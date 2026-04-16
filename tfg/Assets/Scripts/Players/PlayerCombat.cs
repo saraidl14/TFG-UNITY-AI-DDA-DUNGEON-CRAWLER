@@ -76,8 +76,23 @@ public class PlayerCombat : MonoBehaviour
     public int enemiesKilledThisRoom = 0;
 
     // ─────────────────────────────────────────────
+    // ARMA EQUIPADA
+    // ─────────────────────────────────────────────
+    private WeaponData _equippedWeapon = null;
+
+    // Valores por defecto (sin arma) — se guardan en Awake para poder restaurarlos
+    private float _defaultBasicDamage;
+    private float _defaultBasicRange;
+    private float _defaultHeavyDamage;
+    private float _defaultHeavyRange;
+
+    // ─────────────────────────────────────────────
     // REFERENCIAS
     // ─────────────────────────────────────────────
+    [Header("Modelo 3D del arma")]
+    [Tooltip("GameObject vacío hijo de la cámara donde se instancia el modelo 3D del arma equipada.")]
+    public WeaponHolder weaponHolder;
+
     private PlayerHealth playerHealth;
     private Camera playerCamera;
 
@@ -93,10 +108,19 @@ public class PlayerCombat : MonoBehaviour
         playerCamera = GetComponentInChildren<Camera>();
         if (playerCamera == null)
             Debug.LogWarning("[PlayerCombat] No se encontro Camera en el jugador.");
+
+        // Guardar stats base (sin arma) para poder restaurar al desequipar
+        _defaultBasicDamage = basicAttackDamage;
+        _defaultBasicRange  = basicAttackRange;
+        _defaultHeavyDamage = heavyAttackDamage;
+        _defaultHeavyRange  = heavyAttackRange;
     }
 
     private void Update()
     {
+        // Bloquear toda accion de combate mientras el inventario este abierto
+        if (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) return;
+
         HandleBasicAttack();
         HandleHeavyAttack();
         HandleDash();
@@ -228,6 +252,46 @@ public class PlayerCombat : MonoBehaviour
         enemiesKilledThisRoom = 0;
         Debug.Log("[PlayerCombat] Contador de muertes de sala reseteado.");
     }
+
+    // ─────────────────────────────────────────────
+    // EQUIPAR ARMA (llamado por HotbarUI)
+    // ─────────────────────────────────────────────
+
+    /// <summary>
+    /// Equipa un arma y aplica sus stats a los ataques.
+    /// Pasar null para desequipar y volver a los stats base.
+    /// </summary>
+    public void SetActiveWeapon(WeaponData weapon)
+    {
+        _equippedWeapon = weapon;
+
+        if (weapon != null)
+        {
+            basicAttackDamage = weapon.GetEffectiveDamage();
+            basicAttackRange  = weapon.AttackRange;
+            heavyAttackDamage = weapon.GetEffectiveDamage() * 2.5f;
+            heavyAttackRange  = weapon.AttackRange * 1.2f;
+            Debug.Log($"[PlayerCombat] Arma equipada: {weapon.itemName} | Daño: {basicAttackDamage:F1} | Rango: {basicAttackRange:F1}");
+        }
+        else
+        {
+            basicAttackDamage = _defaultBasicDamage;
+            basicAttackRange  = _defaultBasicRange;
+            heavyAttackDamage = _defaultHeavyDamage;
+            heavyAttackRange  = _defaultHeavyRange;
+            Debug.Log("[PlayerCombat] Sin arma equipada. Stats base restaurados.");
+        }
+
+        // Actualizar el modelo 3D en la mano
+        if (weaponHolder != null)
+        {
+            if (weapon != null) weaponHolder.ShowWeapon(weapon);
+            else                weaponHolder.HideWeapon();
+        }
+    }
+
+    /// <summary>El arma actualmente equipada (null = puños).</summary>
+    public WeaponData EquippedWeapon => _equippedWeapon;
 
     // Gizmo de depuracion: muestra los rangos de ataque en el editor
     private void OnDrawGizmosSelected()

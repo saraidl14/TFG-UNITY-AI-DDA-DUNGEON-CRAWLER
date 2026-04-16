@@ -41,6 +41,7 @@ public class EnemiesControllers : MonoBehaviour
     {
         _activeEnemies.Clear();
         _roomNormalEnemyCount = 0;
+        _ddaEvaluatedThisRoom = false;
         Debug.Log("[EnemiesControllers] Lista de enemigos limpiada para nueva escena.");
     }
 
@@ -72,9 +73,23 @@ public class EnemiesControllers : MonoBehaviour
     {
         _activeEnemies.Remove(enemy);
 
-        // Si no quedan enemigos, la sala esta limpia
-        if (_activeEnemies.Count == 0)
+        // Si no quedan enemigos Y el DDA no fue ya evaluado por muerte del boss → sala limpia
+        if (_activeEnemies.Count == 0 && !_ddaEvaluatedThisRoom)
             OnRoomCleared();
+    }
+
+    // Flag para evitar doble evaluación DDA (cuando el boss muere y además quedan 0 enemigos)
+    private bool _ddaEvaluatedThisRoom = false;
+
+    /// <summary>
+    /// Llamado directamente desde BossController.Die() para garantizar que el DDA
+    /// se evalua al morir el boss, independientemente de si quedan enemigos normales vivos.
+    /// </summary>
+    public void TriggerBossDDA()
+    {
+        if (_ddaEvaluatedThisRoom) return;
+        _ddaEvaluatedThisRoom = true;
+        OnRoomCleared();
     }
 
     // ─────────────────────────────────────────────
@@ -151,7 +166,9 @@ public class EnemiesControllers : MonoBehaviour
         if (MetricsTracker.Instance != null)
         {
             PlayerHealth ph = FindObjectOfType<PlayerHealth>();
-            float hpNow = ph != null ? ph.GetCurrentHealth() : 0f;
+            // Si no se encuentra al jugador usamos 50 como valor neutro (no penaliza ni bonifica)
+            // para evitar que un null reference hunda el score DDA injustamente
+            float hpNow = ph != null ? ph.GetCurrentHealth() : 50f;
             MetricsTracker.Instance.CloseRoom(hpNow);
         }
 
@@ -171,13 +188,13 @@ public class EnemiesControllers : MonoBehaviour
     /// Construye y evalua el arbol BT-DDA segun la tabla de umbrales v2.0.
     ///
     /// Selector (raiz)
-    /// ├─ Sequence → score >= +40  → IncreaseDifficulty(+3)
-    /// ├─ Sequence → score >= +25  → IncreaseDifficulty(+2)
-    /// ├─ Sequence → score >= +15  → IncreaseDifficulty(+1)
-    /// ├─ Sequence → score <= -15  → DecreaseDifficulty(-1)
-    /// ├─ Sequence → score <= -25  → DecreaseDifficulty(-2)
-    /// ├─ Sequence → score <= -40  → DecreaseDifficulty(-3)
-    /// └─ TaskMaintainDifficulty   → mantener
+    /// ├─ Sequence → score >= +35  → IncreaseDifficulty(+3)  [Dominando]
+    /// ├─ Sequence → score >= +15  → IncreaseDifficulty(+2)  [Excelente]
+    /// ├─ Sequence → score >=  +1  → IncreaseDifficulty(+1)  [Bien]
+    /// ├─ Sequence → score <=  -8  → DecreaseDifficulty(-1)  [Costó]
+    /// ├─ Sequence → score <= -18  → DecreaseDifficulty(-2)  [Muy difícil]
+    /// ├─ Sequence → score <= -30  → DecreaseDifficulty(-3)  [Imposible]
+    /// └─ TaskMaintainDifficulty   → mantener                [Flow equilibrado]
     /// </summary>
     private void EvaluateDDATree()
     {
@@ -185,16 +202,19 @@ public class EnemiesControllers : MonoBehaviour
             ? MetricsTracker.Instance.LastDDAScore
             : 0f;
 
-        // Construir arbol
+        // Construir arbol — umbrales alineados con CalculateAdjustment():
+        //   Score maximo tipico: ~46 (sin daño + <20s + HP llena + streak>4)
+        //   Score normal (sin muertes, velocidad ok, sin items): ~6-13
+        //   +1 desde score>=1 para que cualquier partida positiva suba la dificultad
         Node ddaTree = new Selector(new System.Collections.Generic.List<Node>
         {
-            MakeAdjustBranch( 40f, true,   3),
-            MakeAdjustBranch( 25f, true,   2),
-            MakeAdjustBranch( 15f, true,   1),
-            MakeAdjustBranch(-15f, false, -1),
-            MakeAdjustBranch(-25f, false, -2),
-            MakeAdjustBranch(-40f, false, -3),
-            new TaskMaintainDifficulty()
+            MakeAdjustBranch( 35f, true,   3),  // Dominando (sin daño + muy rapido + HP llena)
+            MakeAdjustBranch( 15f, true,   2),  // Excelente (rapido aunque con daño)
+            MakeAdjustBranch(  1f, true,   1),  // Bien (gano sin morir, cualquier ritmo)
+            MakeAdjustBranch( -8f, false, -1),  // Costo (HP critica o muy lento)
+            MakeAdjustBranch(-18f, false, -2),  // Muy dificil (murio una vez)
+            MakeAdjustBranch(-30f, false, -3),  // Imposible (murio varias veces)
+            new TaskMaintainDifficulty()         // Zona de flow equilibrado [-8, +1)
         });
 
         // Pasar el score al blackboard

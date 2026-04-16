@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c797805624024ed408c7baec4c8fe12f, type: 3}
+  m_Name: Espada Epica
+  m_EditorClassIdentifier: 
+  itemName: Espada Comun
+  icon: {fileID: 1877796086, guid: 3fd88cc3dacaeca4fa060aeea3b025f4, type: 3}
+  description: Una espada desgastada y poco afilada
+  itemType: 0
+  stackable: 0
+  maxStack: 1
+  baseDamage: 30
+  attackSpeed: 2
+  maxDurability: 100
+  rarity: 3
+  weaponModelPrefab: {fileID: 1396433096443090232, guid: d5f7a6a23652ace40859c04b4bb3c5f7, type: 3}
+  modelLocalPosition: {x: 0, y: 0, z: 0}
+  modelLocalRotation: {x: 0, y: 0, z: 0}
+  modelLocalScale: 1
+  currentDurability: 100
+  upgradeLevel: 0
+  knockbackForce: 3

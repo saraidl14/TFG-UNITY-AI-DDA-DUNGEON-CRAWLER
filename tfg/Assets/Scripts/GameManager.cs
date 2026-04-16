@@ -194,6 +194,14 @@ public class GameManager : MonoBehaviour
         Debug.Log($"[GameManager] +{amount} monedas | Total sesion: {SessionCoins}");
     }
 
+    public bool SpendCoins(int amount)
+    {
+        if (SessionCoins < amount) return false;
+        SessionCoins -= amount;
+        Debug.Log($"[GameManager] -{amount} monedas | Total sesion: {SessionCoins}");
+        return true;
+    }
+
     // ─────────────────────────────────────────────
     // CICLO DE VIDA
     // ─────────────────────────────────────────────
@@ -415,7 +423,10 @@ public class GameManager : MonoBehaviour
         _dungeonStartScore = ScoreManager.Instance != null ? ScoreManager.Instance.AccumulatedScore   : 0;
 
         if (MetricsTracker.Instance != null)
+        {
             MetricsTracker.Instance.ResetRoomMetrics();
+            MetricsTracker.Instance.ResetStreak(); // La racha perfecta empieza de cero en cada mazmorra
+        }
 
         SceneManager.LoadScene(gameSceneName);
     }

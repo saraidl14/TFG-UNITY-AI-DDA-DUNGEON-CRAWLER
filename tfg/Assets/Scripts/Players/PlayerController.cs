@@ -63,6 +63,9 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        // No mover ni girar cámara mientras el inventario esté abierto
+        if (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) return;
+
         HandleMovement();
         HandleMouseLook();
     }

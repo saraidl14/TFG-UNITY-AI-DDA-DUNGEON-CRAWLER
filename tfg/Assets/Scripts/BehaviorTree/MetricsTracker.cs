@@ -222,6 +222,16 @@ public class MetricsTracker : MonoBehaviour
     }
 
     /// <summary>
+    /// Resetea la racha perfecta al empezar una nueva mazmorra.
+    /// La racha NO persiste entre dungeons: cada mazmorra es un reto independiente.
+    /// </summary>
+    public void ResetStreak()
+    {
+        PerfectStreak = 0;
+        Debug.Log("[MetricsTracker] Racha perfecta reseteada para nueva mazmorra.");
+    }
+
+    /// <summary>
     /// Devuelve un resumen de las metricas actuales para depuracion.
     /// </summary>
     public string GetSummary()

@@ -9,6 +9,9 @@ public class TaskMaintainDifficulty : Node
 {
     public override NodeState Evaluate()
     {
+        if (DifficultyManager.Instance != null)
+            DifficultyManager.Instance.AdjustLevel(0);
+
         Debug.Log($"[BT-DDA] Dificultad mantenida en nivel {DifficultyManager.Instance?.currentLevel}.");
         state = NodeState.SUCCESS;
         return state;

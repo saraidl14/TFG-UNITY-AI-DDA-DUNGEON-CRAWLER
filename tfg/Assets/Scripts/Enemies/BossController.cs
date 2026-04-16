@@ -235,8 +235,13 @@ public class BossController : EnemyBase
     {
         Debug.Log($"[BossController] Boss derrotado en nivel {(DifficultyManager.Instance != null ? DifficultyManager.Instance.currentLevel : 1)}.");
 
-        OnBossDead?.Invoke(); // Notifica a GameManager
-        base.Die();
+        // Evaluar DDA directamente: no esperar a que _activeEnemies == 0.
+        // El jugador puede matar solo al boss (speedrun) dejando enemigos normales vivos.
+        if (EnemiesControllers.Instance != null)
+            EnemiesControllers.Instance.TriggerBossDDA();
+
+        base.Die();           // Desregistrar de _activeEnemies y destruir (flag evita doble DDA)
+        OnBossDead?.Invoke(); // El panel ya lee LastAdjustment actualizado
     }
 
     // ─────────────────────────────────────────────

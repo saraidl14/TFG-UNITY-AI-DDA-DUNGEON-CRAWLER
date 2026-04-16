@@ -273,9 +273,107 @@ public class RoomGenerateTemplates : MonoBehaviour
     // AYUDAS (pendiente fase 3)
     // ─────────────────────────────────────────────
 
+    // ─────────────────────────────────────────────
+    // COFRES
+    // ─────────────────────────────────────────────
+
+    [Header("Cofres")]
+    [Tooltip("Prefab del cofre. Debe tener ChestController.")]
+    public GameObject chestPrefab;
+
+    [Tooltip("Los 5 tipos de cofre en orden: Common, Uncommon, Rare, Epic, Legendary.")]
+    public ChestData[] chestTypes;
+
+    [Tooltip("Probabilidad de que aparezca un cofre en cada sala normal (0.0-1.0).")]
+    [Range(0f, 1f)]
+    public float chestSpawnChance = 0.6f;
+
     private void SpawnHelps()
     {
-        // TODO Fase 3: cofres y pociones de vida
+        if (chestPrefab == null || chestTypes == null || chestTypes.Length == 0) return;
+
+        int level = DifficultyManager.Instance != null ? DifficultyManager.Instance.currentLevel : 1;
+        GameObject bossRoom = GetFurthestRoom();
+
+        foreach (GameObject room in rooms)
+        {
+            if (room == centralRoom) continue; // No cofre en la sala inicial
+            if (room == bossRoom)    continue; // No cofre en la sala del boss
+
+            if (Random.value > chestSpawnChance) continue; // Probabilidad de aparición
+
+            ChestData picked = RollChestType(level);
+            if (picked == null) continue;
+
+            // Posición: esquina si hay enemigos (salas normales), centro si está vacía
+            bool hasEnemies = room.GetComponentInChildren<EnemyBase>() != null;
+            Vector3 spawnPos = hasEnemies
+                ? GetRoomCorner(room)
+                : GetRoomCenter(room);
+
+            spawnPos += Vector3.up * 0.1f; // Elevar levemente sobre el suelo
+
+            GameObject chest = Instantiate(chestPrefab, spawnPos, Quaternion.identity);
+            ChestController cc = chest.GetComponent<ChestController>();
+            if (cc != null) cc.SetChestData(picked);
+
+            Debug.Log($"[RoomGenerateTemplates] Cofre {picked.chestName} spawneado en {room.name} " +
+                      $"({(hasEnemies ? "esquina" : "centro")})");
+        }
+    }
+
+    /// <summary>
+    /// Selecciona el tipo de cofre usando pesos ponderados ajustados al nivel DDA.
+    /// A mayor dificultad, más probabilidad de cofres de mayor rareza.
+    /// </summary>
+    private ChestData RollChestType(int difficultyLevel)
+    {
+        float totalWeight = 0f;
+        foreach (ChestData cd in chestTypes)
+            if (cd != null) totalWeight += cd.GetEffectiveSpawnWeight(difficultyLevel);
+
+        if (totalWeight <= 0f) return null;
+
+        float roll = Random.Range(0f, totalWeight);
+        float cumulative = 0f;
+        foreach (ChestData cd in chestTypes)
+        {
+            if (cd == null) continue;
+            cumulative += cd.GetEffectiveSpawnWeight(difficultyLevel);
+            if (roll <= cumulative) return cd;
+        }
+        return chestTypes[0];
+    }
+
+    /// <summary>
+    /// Devuelve una posición en la esquina de la sala (alejada del centro).
+    /// Usada cuando hay enemigos para no bloquear el combate.
+    /// </summary>
+    private Vector3 GetRoomCorner(GameObject room)
+    {
+        Vector3 center = GetRoomCenter(room);
+
+        // Elegir una de las 4 esquinas aleatoriamente con un offset del 35% del tamaño
+        int floorLayer = LayerMask.NameToLayer("Suelo");
+        Collider[] colliders = room.GetComponentsInChildren<Collider>();
+        Bounds bounds = new Bounds(center, Vector3.one);
+
+        foreach (Collider c in colliders)
+            if (c.gameObject.layer == floorLayer)
+                bounds.Encapsulate(c.bounds);
+
+        float offsetX = bounds.extents.x * 0.6f;
+        float offsetZ = bounds.extents.z * 0.6f;
+
+        Vector2[] corners = {
+            new Vector2( offsetX,  offsetZ),
+            new Vector2(-offsetX,  offsetZ),
+            new Vector2( offsetX, -offsetZ),
+            new Vector2(-offsetX, -offsetZ)
+        };
+
+        Vector2 chosen = corners[Random.Range(0, corners.Length)];
+        return new Vector3(center.x + chosen.x, center.y, center.z + chosen.y);
     }
 
     // ─────────────────────────────────────────────
