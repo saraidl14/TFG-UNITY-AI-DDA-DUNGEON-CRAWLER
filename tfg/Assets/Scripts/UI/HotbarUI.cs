@@ -88,6 +88,9 @@ public class HotbarUI : MonoBehaviour
         _combat = FindObjectOfType<PlayerCombat>();
         _health = FindObjectOfType<PlayerHealth>();
 
+        // Auto-configurar arrays desde los hijos si no están asignados en el Inspector
+        AutoSetupFromChildren();
+
         if (Inventory.Instance != null)
             Inventory.Instance.OnSlotChanged += OnInventorySlotChanged;
 
@@ -100,6 +103,45 @@ public class HotbarUI : MonoBehaviour
 
         RefreshAll();
         EquipWeaponSlot(0);
+    }
+
+    /// <summary>
+    /// Busca automáticamente los componentes hijos en orden.
+    /// Cada hijo directo del HotbarRoot es un slot (0-5).
+    /// Dentro de cada slot busca: Image (fondo), Image hijo "Icon",
+    /// TMP_Text "Quantity", TMP_Text "KeyLabel", Image "SelectionBorder".
+    /// </summary>
+    private void AutoSetupFromChildren()
+    {
+        // Recoger los slots hijos directos (en orden)
+        int childCount = Mathf.Min(transform.childCount, 6);
+
+        for (int i = 0; i < childCount; i++)
+        {
+            Transform slot = transform.GetChild(i);
+
+            // Fondo: Image en el propio slot
+            if (backgrounds[i] == null)
+                backgrounds[i] = slot.GetComponent<Image>();
+
+            // Buscar hijos por nombre
+            foreach (Transform child in slot)
+            {
+                string n = child.name.ToLower();
+
+                if (icons[i] == null && n.Contains("icon"))
+                    icons[i] = child.GetComponent<Image>();
+
+                if (selectionBorders[i] == null && (n.Contains("border") || n.Contains("selection")))
+                    selectionBorders[i] = child.GetComponent<Image>();
+
+                if (quantities[i] == null && (n.Contains("quant") || n.Contains("qty") || n.Contains("cantidad")))
+                    quantities[i] = child.GetComponent<TMP_Text>();
+
+                if (keyLabels[i] == null && (n.Contains("key") || n.Contains("label")))
+                    keyLabels[i] = child.GetComponent<TMP_Text>();
+            }
+        }
     }
 
     private void OnDestroy()

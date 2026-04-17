@@ -48,7 +48,7 @@ public class RoomGenerateTemplates : MonoBehaviour
     public List<GameObject> rooms;     // Lista de GameObjects de las salas que se han generado, nos puede ayudar a controlar el número de salas que se generan y a spawnear enemigos y ayudas en ellas.
 
     [Tooltip("Limite configurable desde el Inspector, nos puede ayudar a controlar la dificultad del juego cuando le metamos BT.")]
-    public int maxRooms = 15;
+    public int maxRooms = 10;
 
     // ─────────────────────────────────────────────
     // PREFABS DE ENEMIGOS

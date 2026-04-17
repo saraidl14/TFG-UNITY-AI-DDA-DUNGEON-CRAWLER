@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -11,60 +10,83 @@ public class RoomSpawns : MonoBehaviour
     // 3 = left
     // 4 = right
 
+    // Registro de posiciones que ya han generado una sala (evita doble spawn)
+    private static HashSet<Vector2Int> _spawnedPositions = new HashSet<Vector2Int>();
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void ResetRegistry()
+    {
+        _spawnedPositions.Clear();
+    }
+
     private RoomGenerateTemplates templates;
-    private int rand;
-    private bool spawned = false;
+    public bool spawned = false;
 
     void Start()
     {
-      templates = GameObject.FindGameObjectWithTag("Rooms").GetComponent<RoomGenerateTemplates>();
-       Invoke("Spawn", 0.1f);
+        templates = GameObject.FindGameObjectWithTag("Rooms").GetComponent<RoomGenerateTemplates>();
+        Invoke("Spawn", 0.1f);
     }
 
     void Spawn()
     {
-        if (spawned == false)
+        if (spawned) return;
+
+        Vector2Int pos = GetGridPos();
+
+        // Ya hay una sala spawneada aquí: este SpawnPoint sobra, se destruye sin poner muro
+        if (_spawnedPositions.Contains(pos))
         {
-            if (openSides == 1) // bottom
-            {
-                rand = Random.Range(0, templates.bottomRooms.Length);
-                Instantiate(templates.bottomRooms[rand], transform.position, templates.bottomRooms[rand].transform.rotation);
-            }
-            else if (openSides == 2) // top
-            {
-                rand = Random.Range(0, templates.topRooms.Length);
-                Instantiate(templates.topRooms[rand], transform.position, templates.topRooms[rand].transform.rotation);
-            }
-            else if (openSides == 3) //left
-            {
-                rand = Random.Range(0, templates.leftRooms.Length);
-                Instantiate(templates.leftRooms[rand], transform.position, templates.leftRooms[rand].transform.rotation);
-            }
-            else if (openSides == 4) // right
-            {
-                rand = Random.Range(0, templates.rightRooms.Length);
-                Instantiate(templates.rightRooms[rand], transform.position, templates.rightRooms[rand].transform.rotation);
-            }
             spawned = true;
+            Destroy(gameObject);
+            return;
         }
-        
+
+        // Límite de salas alcanzado: poner muro
+        if (templates.rooms.Count >= templates.maxRooms)
+        {
+            SpawnClosed();
+            return;
+        }
+
+        // Spawnar sala según la dirección
+        spawned = true;
+        _spawnedPositions.Add(pos);
+
+        if (openSides == 1)
+        {
+            int r = Random.Range(0, templates.bottomRooms.Length);
+            Instantiate(templates.bottomRooms[r], transform.position, templates.bottomRooms[r].transform.rotation);
+        }
+        else if (openSides == 2)
+        {
+            int r = Random.Range(0, templates.topRooms.Length);
+            Instantiate(templates.topRooms[r], transform.position, templates.topRooms[r].transform.rotation);
+        }
+        else if (openSides == 3)
+        {
+            int r = Random.Range(0, templates.leftRooms.Length);
+            Instantiate(templates.leftRooms[r], transform.position, templates.leftRooms[r].transform.rotation);
+        }
+        else if (openSides == 4)
+        {
+            int r = Random.Range(0, templates.rightRooms.Length);
+            Instantiate(templates.rightRooms[r], transform.position, templates.rightRooms[r].transform.rotation);
+        }
     }
 
-    private void OnTriggerEnter(Collider other)
+    private void SpawnClosed()
     {
-        if (other.CompareTag("SpawnPoint"))
-        {
-            RoomSpawns otherSpawn = other.GetComponent<RoomSpawns>();
-            if (otherSpawn == null) return; // el SpawnPoint no tiene RoomSpawns, ignorar
-
-            if (otherSpawn.spawned == false && spawned == false)
-            {
-                if (templates != null && templates.closedRoom != null)
-                    Instantiate(templates.closedRoom, transform.position, Quaternion.identity);
-                Destroy(gameObject);
-            }
-            spawned = true;
-        }
+        spawned = true;
+        if (templates != null && templates.closedRoom != null)
+            Instantiate(templates.closedRoom, transform.position, Quaternion.identity);
+        Destroy(gameObject);
     }
 
+    private Vector2Int GetGridPos()
+    {
+        return new Vector2Int(
+            Mathf.RoundToInt(transform.position.x),
+            Mathf.RoundToInt(transform.position.z));
+    }
 }

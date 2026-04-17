@@ -30,4 +30,4 @@ MonoBehaviour:
       weight: 33
       minQuantity: 1
       maxQuantity: 1
-  emptyChance: 0.05
+  emptyChance: 0

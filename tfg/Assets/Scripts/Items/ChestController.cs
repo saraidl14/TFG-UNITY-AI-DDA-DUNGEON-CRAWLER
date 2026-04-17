@@ -1,53 +1,33 @@
+using System.Collections;
 using UnityEngine;
 
-/// <summary>
-/// Controlador del cofre en el mundo. El jugador pulsa E cerca para abrirlo.
-/// Al abrirse hace el sorteo de loot y spawnea el ítem en el suelo.
-/// Solo puede abrirse una vez.
-///
-/// Setup en Unity:
-///   - Añade este script al prefab del cofre
-///   - Añade un Collider (SphereCollider radio ~1.5) con Is Trigger = true
-///   - Asigna ChestData en el Inspector o desde el generador de salas
-///   - Asigna itemPickupPrefab (prefab con ItemPickup + Collider trigger)
-/// </summary>
 public class ChestController : MonoBehaviour
 {
-    // ─────────────────────────────────────────────
-    // CONFIGURACIÓN
-    // ─────────────────────────────────────────────
     [Header("Datos del cofre")]
     public ChestData chestData;
 
-    [Header("Prefab del ítem en el suelo")]
-    [Tooltip("Prefab que se instancia al abrir. Debe tener ItemPickup + Collider trigger.")]
-    public GameObject itemPickupPrefab;
-
     [Header("Interacción")]
-    public KeyCode interactKey  = KeyCode.E;
-    public float   interactRange = 2f;
+    public KeyCode interactKey = KeyCode.E;
+
+    [Header("Blend Shape (Shape Key)")]
+    public SkinnedMeshRenderer chestMesh;
+    public int blendShapeIndex = 0;
+    public float openAnimDuration = 1f;
 
     [Header("Visual (opcional)")]
-    [Tooltip("Renderer del cofre para cambiar color según rareza.")]
     public Renderer chestRenderer;
 
-    // ─────────────────────────────────────────────
-    // ESTADO
-    // ─────────────────────────────────────────────
-    private bool      _isOpen          = false;
-    private bool      _playerNearby    = false;
-    private Transform _player;
+    private bool _isOpen       = false;
+    private bool _playerNearby = false;
 
-    // ─────────────────────────────────────────────
-    // CICLO DE VIDA
-    // ─────────────────────────────────────────────
     private void Start()
     {
-        // Buscar jugador
-        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-        if (playerObj != null) _player = playerObj.transform;
+        if (chestMesh == null)
+            chestMesh = GetComponentInChildren<SkinnedMeshRenderer>();
 
-        // Aplicar color de rareza al renderer
+        if (chestMesh != null)
+            chestMesh.SetBlendShapeWeight(blendShapeIndex, 0f);
+
         if (chestRenderer != null && chestData != null)
             chestRenderer.material.color = chestData.chestColor;
     }
@@ -55,92 +35,71 @@ public class ChestController : MonoBehaviour
     private void Update()
     {
         if (_isOpen || !_playerNearby) return;
-
-        if (Input.GetKeyDown(interactKey))
-            Open();
+        if (Input.GetKeyDown(interactKey)) Open();
     }
 
-    // ─────────────────────────────────────────────
-    // DETECCIÓN DE PROXIMIDAD
-    // ─────────────────────────────────────────────
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player"))
-        {
-            _playerNearby = true;
-            Debug.Log($"[ChestController] Jugador cerca de {chestData?.chestName}. Pulsa E para abrir.");
-            // TODO: mostrar prompt UI "Pulsa E para abrir"
-        }
+        if (!other.CompareTag("Player")) return;
+        _playerNearby = true;
+        if (!_isOpen) InteractPromptUI.Instance?.Show("[ E ]  Abrir cofre");
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Player"))
-            _playerNearby = false;
+        if (!other.CompareTag("Player")) return;
+        _playerNearby = false;
+        InteractPromptUI.Instance?.Hide();
     }
 
-    // ─────────────────────────────────────────────
-    // ABRIR COFRE
-    // ─────────────────────────────────────────────
     private void Open()
     {
         if (_isOpen || chestData == null) return;
         _isOpen = true;
 
-        Debug.Log($"[ChestController] Abriendo {chestData.chestName} ({chestData.rarity})...");
+        InteractPromptUI.Instance?.Hide();
+        StartCoroutine(AnimateOpen());
 
-        // Sorteo de loot
         LootEntry result = chestData.RollLoot();
-
         if (result == null || result.item == null)
         {
             Debug.Log("[ChestController] El cofre estaba vacío.");
-            // TODO: animación cofre vacío
             return;
         }
 
         int qty = Random.Range(result.minQuantity, result.maxQuantity + 1);
-        SpawnItem(result.item, qty);
+        StartCoroutine(AddToInventoryAfterAnim(result.item, qty));
     }
 
-    // ─────────────────────────────────────────────
-    // SPAWNEAR ÍTEM
-    // ─────────────────────────────────────────────
-    private void SpawnItem(ItemData item, int qty)
+    private IEnumerator AnimateOpen()
     {
-        if (itemPickupPrefab == null)
+        if (chestMesh == null) yield break;
+
+        float elapsed = 0f;
+        while (elapsed < openAnimDuration)
         {
-            // Sin prefab: añadir directamente al inventario
-            if (Inventory.Instance != null)
-            {
-                Inventory.Instance.AddItem(item, qty);
-                Debug.Log($"[ChestController] {item.itemName} x{qty} añadido directamente al inventario.");
-            }
-            return;
+            elapsed += Time.deltaTime;
+            float t       = Mathf.Clamp01(elapsed / openAnimDuration);
+            float smoothT = t * t * (3f - 2f * t);
+            chestMesh.SetBlendShapeWeight(blendShapeIndex, smoothT * 100f);
+            yield return null;
         }
-
-        // Spawnear prefab ligeramente encima del cofre
-        Vector3 spawnPos = transform.position + Vector3.up * 0.5f;
-        GameObject go = Instantiate(itemPickupPrefab, spawnPos, Quaternion.identity);
-
-        ItemPickup pickup = go.GetComponent<ItemPickup>();
-        if (pickup != null)
-        {
-            pickup.item     = item;
-            pickup.quantity = qty;
-        }
-
-        Debug.Log($"[ChestController] {item.itemName} x{qty} spawneado en {spawnPos}.");
+        chestMesh.SetBlendShapeWeight(blendShapeIndex, 100f);
     }
 
-    // ─────────────────────────────────────────────
-    // ASIGNACIÓN DESDE EL GENERADOR
-    // ─────────────────────────────────────────────
+    private IEnumerator AddToInventoryAfterAnim(ItemData item, int qty)
+    {
+        yield return new WaitForSeconds(openAnimDuration);
 
-    /// <summary>
-    /// Llamado por el generador de salas al instanciar el cofre.
-    /// Asigna el ChestData según el sorteo de rareza.
-    /// </summary>
+        if (Inventory.Instance != null)
+        {
+            bool added = Inventory.Instance.AddItem(item, qty);
+            Debug.Log(added
+                ? $"[ChestController] {item.itemName} x{qty} añadido al inventario."
+                : $"[ChestController] Inventario lleno.");
+        }
+    }
+
     public void SetChestData(ChestData data)
     {
         chestData = data;
@@ -151,6 +110,6 @@ public class ChestController : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, interactRange);
+        Gizmos.DrawWireSphere(transform.position, 1.5f);
     }
 }
