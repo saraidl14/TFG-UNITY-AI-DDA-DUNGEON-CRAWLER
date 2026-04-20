@@ -83,16 +83,11 @@ public class HotbarUI : MonoBehaviour
         Instance = this;
     }
 
+    private bool _subscribed = false;
+
     private void Start()
     {
-        _combat = FindObjectOfType<PlayerCombat>();
-        _health = FindObjectOfType<PlayerHealth>();
-
-        // Auto-configurar arrays desde los hijos si no están asignados en el Inspector
         AutoSetupFromChildren();
-
-        if (Inventory.Instance != null)
-            Inventory.Instance.OnSlotChanged += OnInventorySlotChanged;
 
         for (int i = 0; i < 6; i++)
         {
@@ -100,6 +95,18 @@ public class HotbarUI : MonoBehaviour
             if (selectionBorders[i] != null) selectionBorders[i].gameObject.SetActive(false);
             if (keyLabels[i]        != null) keyLabels[i].text         = (i + 1).ToString();
         }
+
+        TrySubscribeInventory();
+    }
+
+    private void TrySubscribeInventory()
+    {
+        if (_subscribed || Inventory.Instance == null) return;
+        Inventory.Instance.OnSlotChanged += OnInventorySlotChanged;
+        _subscribed = true;
+
+        _combat = FindObjectOfType<PlayerCombat>();
+        _health = FindObjectOfType<PlayerHealth>();
 
         RefreshAll();
         EquipWeaponSlot(0);
@@ -113,7 +120,6 @@ public class HotbarUI : MonoBehaviour
     /// </summary>
     private void AutoSetupFromChildren()
     {
-        // Recoger los slots hijos directos (en orden)
         int childCount = Mathf.Min(transform.childCount, 6);
 
         for (int i = 0; i < childCount; i++)
@@ -124,23 +130,39 @@ public class HotbarUI : MonoBehaviour
             if (backgrounds[i] == null)
                 backgrounds[i] = slot.GetComponent<Image>();
 
-            // Buscar hijos por nombre
-            foreach (Transform child in slot)
+            // Buscar en TODOS los descendientes
+            Image[]    allImages = slot.GetComponentsInChildren<Image>(true);
+            TMP_Text[] allTexts  = slot.GetComponentsInChildren<TMP_Text>(true);
+
+            foreach (Image img in allImages)
             {
-                string n = child.name.ToLower();
+                if (img.transform == slot) continue; // saltar el fondo
+                string n = img.name.ToLower();
 
                 if (icons[i] == null && n.Contains("icon"))
-                    icons[i] = child.GetComponent<Image>();
+                    icons[i] = img;
 
                 if (selectionBorders[i] == null && (n.Contains("border") || n.Contains("selection")))
-                    selectionBorders[i] = child.GetComponent<Image>();
+                    selectionBorders[i] = img;
+            }
+
+            foreach (TMP_Text txt in allTexts)
+            {
+                string n = txt.name.ToLower();
 
                 if (quantities[i] == null && (n.Contains("quant") || n.Contains("qty") || n.Contains("cantidad")))
-                    quantities[i] = child.GetComponent<TMP_Text>();
+                    quantities[i] = txt;
 
                 if (keyLabels[i] == null && (n.Contains("key") || n.Contains("label")))
-                    keyLabels[i] = child.GetComponent<TMP_Text>();
+                    keyLabels[i] = txt;
             }
+
+            Debug.Log($"[HotbarUI] Slot {i} ({slot.name}): " +
+                      $"bg={backgrounds[i]?.name ?? "NULL"}, " +
+                      $"icon={icons[i]?.name ?? "NULL"}, " +
+                      $"border={selectionBorders[i]?.name ?? "NULL"}, " +
+                      $"qty={quantities[i]?.name ?? "NULL"}, " +
+                      $"key={keyLabels[i]?.name ?? "NULL"}");
         }
     }
 
@@ -152,6 +174,12 @@ public class HotbarUI : MonoBehaviour
 
     private void Update()
     {
+        // Suscribirse en cuanto el Inventory esté disponible (Player instanciado tarde)
+        TrySubscribeInventory();
+
+        if (_combat == null) _combat = FindObjectOfType<PlayerCombat>();
+        if (_health == null) _health = FindObjectOfType<PlayerHealth>();
+
         if (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) return;
 
         for (int i = 0; i < HotbarKeys.Length; i++)
@@ -187,9 +215,18 @@ public class HotbarUI : MonoBehaviour
     private void ActivateHotbarSlot(int hotbarIndex)
     {
         if (hotbarIndex < 3)
+        {
             EquipWeaponSlot(hotbarIndex);
+        }
         else
+        {
+            // Mostrar selección visual en el slot general
+            for (int i = 3; i < 6; i++)
+                if (selectionBorders[i] != null)
+                    selectionBorders[i].gameObject.SetActive(i == hotbarIndex);
+
             UseItemSlot(hotbarIndex);
+        }
     }
 
     public void EquipWeaponSlot(int hotbarSlot)

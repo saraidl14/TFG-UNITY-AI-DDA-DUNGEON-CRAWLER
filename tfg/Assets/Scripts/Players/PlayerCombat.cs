@@ -132,7 +132,8 @@ public class PlayerCombat : MonoBehaviour
 
     /// <summary>
     /// Ataque basico con click izquierdo.
-    /// Sin coste de stamina. Dano base 10.
+    /// Si el arma equipada es de largo alcance, dispara una flecha.
+    /// Si es melee, usa el OverlapSphere habitual.
     /// </summary>
     private void HandleBasicAttack()
     {
@@ -140,8 +141,16 @@ public class PlayerCombat : MonoBehaviour
         if (Time.time < lastBasicAttackTime + basicAttackCooldown) return;
 
         lastBasicAttackTime = Time.time;
-        Debug.Log("[PlayerCombat] Ataque basico ejecutado.");
-        PerformAttack(basicAttackDamage, basicAttackRange);
+
+        if (_equippedWeapon is LongRangeWeaponData bow)
+        {
+            ShootArrow(bow);
+        }
+        else
+        {
+            Debug.Log("[PlayerCombat] Ataque basico ejecutado.");
+            PerformAttack(basicAttackDamage, basicAttackRange);
+        }
     }
 
     // ─────────────────────────────────────────────
@@ -237,6 +246,41 @@ public class PlayerCombat : MonoBehaviour
             playerHealth.TryDash(inputDir);
             Debug.Log($"[PlayerCombat] Dash hacia: {inputDir}");
         }
+    }
+
+    // ─────────────────────────────────────────────
+    // DISPARO (arco / ballesta)
+    // ─────────────────────────────────────────────
+
+    private void ShootArrow(LongRangeWeaponData bow)
+    {
+        if (!bow.HasAmmo)
+        {
+            Debug.Log("[PlayerCombat] Sin munición.");
+            return;
+        }
+
+        if (bow.projectilePrefab == null)
+        {
+            Debug.LogWarning("[PlayerCombat] El arco no tiene projectilePrefab asignado.");
+            return;
+        }
+
+        // Origen y dirección desde el centro de la cámara
+        Vector3 origin    = playerCamera.transform.position;
+        Vector3 direction = playerCamera.transform.forward;
+
+        GameObject arrowGO = Instantiate(bow.projectilePrefab, origin, Quaternion.LookRotation(direction));
+
+        Arrow arrow = arrowGO.GetComponent<Arrow>();
+        if (arrow != null)
+        {
+            arrow.damage = bow.GetEffectiveDamage();
+            arrow.speed  = bow.projectileSpeed;
+        }
+
+        bow.ConsumeAmmo();
+        Debug.Log($"[PlayerCombat] Flecha disparada | Munición restante: {bow.currentAmmo}/{bow.maxAmmo}");
     }
 
     // ─────────────────────────────────────────────

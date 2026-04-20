@@ -253,18 +253,19 @@ public class RoomGenerateTemplates : MonoBehaviour
     /// </summary>
     private GameObject[] GetAllowedEnemyTypes(int level)
     {
+        // Enemigos activos: Slime, Skeleton, Orc, Mage
         switch (level)
         {
             case 1:  return new[] { slime };
             case 2:  return new[] { slime };
             case 3:  return new[] { slime,    skeleton };
-            case 4:  return new[] { skeleton, goblin };
-            case 5:  return new[] { skeleton, goblin,  spider };
-            case 6:  return new[] { goblin,   orc,     spider };
-            case 7:  return new[] { goblin,   orc,     mage };
-            case 8:  return new[] { orc,      spider,  mage };
-            case 9:  return new[] { orc,      spider,  mage };
-            case 10: return new[] { orc,      spider,  mage };
+            case 4:  return new[] { slime,    skeleton };
+            case 5:  return new[] { skeleton, orc };
+            case 6:  return new[] { skeleton, orc };
+            case 7:  return new[] { orc,      mage };
+            case 8:  return new[] { orc,      mage };
+            case 9:  return new[] { orc,      mage };
+            case 10: return new[] { orc,      mage };
             default: return new[] { slime };
         }
     }

@@ -22,7 +22,7 @@ MonoBehaviour:
       weight: 33
       minQuantity: 1
       maxQuantity: 1
-    - item: {fileID: 11400000, guid: 7d1de2282181409438cac9de06e04b53, type: 2}
+    - item: {fileID: 11400000, guid: dc58cfcc22d0c6d45a077223976696ab, type: 2}
       weight: 33
       minQuantity: 1
       maxQuantity: 1

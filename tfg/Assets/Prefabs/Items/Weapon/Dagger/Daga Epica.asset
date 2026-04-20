@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87ae61dd66253564f8ec0ef5dc6fc4cb, type: 3}
+  m_Name: Daga Epica
+  m_EditorClassIdentifier: 
+  itemName: Daga Epica
+  icon: {fileID: 21300000, guid: df605d8b16cf5614e9856708dfaf1661, type: 3}
+  description: 
+  itemType: 0
+  stackable: 0
+  maxStack: 1
+  baseDamage: 10
+  attackSpeed: 1
+  maxDurability: 100
+  rarity: 0
+  weaponModelPrefab: {fileID: 919132149155446097, guid: 8a4527fbaf8be88498453e55058aa747, type: 3}
+  modelLocalPosition: {x: 0, y: 0, z: 0}
+  modelLocalRotation: {x: 0, y: 0, z: 0}
+  modelLocalScale: 1
+  currentDurability: 100
+  upgradeLevel: 0
+  comboHits: 2
