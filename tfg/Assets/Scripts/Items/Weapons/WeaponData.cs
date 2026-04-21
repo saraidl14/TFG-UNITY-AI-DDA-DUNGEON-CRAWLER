@@ -133,10 +133,15 @@ public abstract class WeaponData : ItemData
     /// <summary>True si la durabilidad llegó a 0 (arma rota, daño reducido).</summary>
     public bool IsBroken => currentDurability <= 0f;
 
-    /// <summary>Porcentaje de durabilidad restante [0, 1].</summary>
-    public float DurabilityPercent => maxDurability > 0f
-        ? Mathf.Clamp01(currentDurability / maxDurability)
-        : 0f;
+    /// <summary>Porcentaje de durabilidad restante [0, 1] (respecto al máximo efectivo).</summary>
+    public float DurabilityPercent
+    {
+        get
+        {
+            float effMax = GetEffectiveMaxDurability();
+            return effMax > 0f ? Mathf.Clamp01(currentDurability / effMax) : 0f;
+        }
+    }
 
     /// <summary>
     /// Reduce la durabilidad con cada uso del arma.

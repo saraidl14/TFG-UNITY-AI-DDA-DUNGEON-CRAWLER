@@ -267,7 +267,23 @@ public class ItemDetailPanel : MonoBehaviour
                     Debug.Log("[ItemDetailPanel] Escudo de stamina activado (pendiente implementación)");
                     break;
                 case ItemType.ManaShield:
-                    Debug.Log("[ItemDetailPanel] Escudo de maná activado (pendiente implementación)");
+                    if (used is ManaShieldData shield)
+                    {
+                        // Revertir el UseItem — el escudo gestiona su propio consumo
+                        // (UseItem ya decrementó quantity, pero el escudo usa durabilidad, no quantity)
+                        // → Restaurar el slot y usar la lógica de durabilidad
+                        Inventory.Instance.AddItem(used, 1);
+
+                        bool activated = ph.TryActivateManaShield(shield.InvincibilityDuration, shield.Cooldown);
+                        if (activated)
+                        {
+                            int slotIdx = Inventory.Instance.FindItem(used);
+                            bool broken = shield.ConsumeDurability();
+                            if (broken && slotIdx >= 0) Inventory.Instance.RemoveItem(slotIdx);
+                            else if (slotIdx >= 0)      Inventory.Instance.NotifySlotChanged(slotIdx);
+                            Debug.Log($"[ItemDetailPanel] Escudo activado | {shield.DurabilityText}");
+                        }
+                    }
                     break;
             }
         }

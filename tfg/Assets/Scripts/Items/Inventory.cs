@@ -83,7 +83,8 @@ public class Inventory : MonoBehaviour
         if (item == null) return false;
         bool slotIsWeapon = IsWeaponSlot(slotIndex);
         bool itemIsWeapon = item.itemType == ItemType.Weapon;
-        return slotIsWeapon == itemIsWeapon; // arma↔slot arma, general↔slot general
+        // Armas → solo slots 0-2 | Todo lo demás (pociones, ammo, etc.) → slots 3-8
+        return slotIsWeapon == itemIsWeapon;
     }
 
     // ─────────────────────────────────────────────
@@ -100,9 +101,8 @@ public class Inventory : MonoBehaviour
     {
         if (item == null) return false;
 
-        // Las armas son ScriptableObjects compartidos: clonar antes de guardar
-        // para que cada instancia en el inventario tenga su propia durabilidad/nivel.
-        if (item is WeaponData)
+        // Clonar SOs que tienen estado runtime propio (durabilidad, munición…)
+        if (item is WeaponData || item is ManaShieldData)
             item = Instantiate(item);
 
         int start = item.itemType == ItemType.Weapon ? 0             : WEAPON_SLOTS;
@@ -139,6 +139,29 @@ public class Inventory : MonoBehaviour
 
         Debug.Log($"[Inventory] Sin espacio para {item.itemName}.");
         return false;
+    }
+
+    /// <summary>Dispara OnSlotChanged externamente (para refrescar UI tras cambios de durabilidad).</summary>
+    public void NotifySlotChanged(int index) => OnSlotChanged?.Invoke(index);
+
+    // ─────────────────────────────────────────────
+    // RESET EN GAME OVER
+    // ─────────────────────────────────────────────
+
+    /// <summary>
+    /// Vacía todos los slots al morir (game over).
+    /// Las pociones persistentes se restauran por GameManager después de llamar esto.
+    /// </summary>
+    public void ClearAll()
+    {
+        for (int i = 0; i < TOTAL_SLOTS; i++)
+        {
+            if (_slots[i].IsEmpty) continue;
+            _slots[i].item     = null;
+            _slots[i].quantity = 0;
+            OnSlotChanged?.Invoke(i);
+        }
+        Debug.Log("[Inventory] Inventario vaciado por game over.");
     }
 
     // ─────────────────────────────────────────────

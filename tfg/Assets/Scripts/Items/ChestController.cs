@@ -6,6 +6,14 @@ public class ChestController : MonoBehaviour
     [Header("Datos del cofre")]
     public ChestData chestData;
 
+    [Header("Solo primera mazmorra")]
+    [Tooltip("Si está activo, este cofre se destruye automáticamente en mazmorras 2+.")]
+    public bool firstDungeonOnly = false;
+
+    [Header("Loot garantizado (siempre se da al abrir)")]
+    [Tooltip("Ítems que se entregan siempre, además del sorteo de ChestData. Usar para el cofre inicial (arco + flechas).")]
+    public System.Collections.Generic.List<LootEntry> guaranteedLoot = new();
+
     [Header("Interacción")]
     public KeyCode interactKey = KeyCode.E;
 
@@ -22,6 +30,13 @@ public class ChestController : MonoBehaviour
 
     private void Start()
     {
+        // Destruir el cofre si solo debe aparecer en la primera mazmorra
+        if (firstDungeonOnly && GameManager.Instance != null && GameManager.Instance.DungeonNumber > 1)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         if (chestMesh == null)
             chestMesh = GetComponentInChildren<SkinnedMeshRenderer>();
 
@@ -54,21 +69,34 @@ public class ChestController : MonoBehaviour
 
     private void Open()
     {
-        if (_isOpen || chestData == null) return;
+        if (_isOpen) return;
         _isOpen = true;
 
         InteractPromptUI.Instance?.Hide();
         StartCoroutine(AnimateOpen());
 
-        LootEntry result = chestData.RollLoot();
-        if (result == null || result.item == null)
+        // ── Loot garantizado (siempre) ──
+        foreach (LootEntry entry in guaranteedLoot)
         {
-            Debug.Log("[ChestController] El cofre estaba vacío.");
-            return;
+            if (entry == null || entry.item == null) continue;
+            int qty = Random.Range(entry.minQuantity, entry.maxQuantity + 1);
+            StartCoroutine(AddToInventoryAfterAnim(entry.item, qty));
         }
 
-        int qty = Random.Range(result.minQuantity, result.maxQuantity + 1);
-        StartCoroutine(AddToInventoryAfterAnim(result.item, qty));
+        // ── Loot aleatorio de ChestData ──
+        if (chestData != null)
+        {
+            LootEntry result = chestData.RollLoot();
+            if (result != null && result.item != null)
+            {
+                int qty = Random.Range(result.minQuantity, result.maxQuantity + 1);
+                StartCoroutine(AddToInventoryAfterAnim(result.item, qty));
+            }
+            else
+            {
+                Debug.Log("[ChestController] El cofre no tenía loot aleatorio.");
+            }
+        }
     }
 
     private IEnumerator AnimateOpen()
