@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02a36759507a205478f7d4f8f4c854ce, type: 3}
+  m_Name: Cofre Comun Items
+  m_EditorClassIdentifier: 
+  rarity: 0
+  chestName: "Cofre Com\xFAn"
+  chestColor: {r: 1, g: 1, b: 1, a: 1}
+  spawnWeight: 10
+  lootTable:
+    entries:
+    - item: {fileID: 11400000, guid: 4c47d3eafcce1e346b0df13509539554, type: 2}
+      weight: 20
+      minQuantity: 1
+      maxQuantity: 10
+    - item: {fileID: 11400000, guid: b24c567afda233a4996ac5c5ff7db3a8, type: 2}
+      weight: 15
+      minQuantity: 0
+      maxQuantity: 0
+    - item: {fileID: 11400000, guid: 59c60f5137c12dd4aa237b7d10afcf58, type: 2}
+      weight: 1
+      minQuantity: 1
+      maxQuantity: 1
+    - item: {fileID: 11400000, guid: 043243ccd445bc2498f993a9d9ffa63f, type: 2}
+      weight: 20
+      minQuantity: 0
+      maxQuantity: 0
+  emptyChance: 0
