@@ -188,8 +188,9 @@ public class PlayerCombat : MonoBehaviour
     /// </summary>
     private void PerformAttack(float damage, float range)
     {
-        // Detectar todos los colliders de enemigos en el rango
-        Collider[] hits = Physics.OverlapSphere(transform.position, range, enemyLayer);
+        // Origen desde el pecho del jugador hacia adelante, no desde los pies
+        Vector3 origin = transform.position + Vector3.up * 1.2f + transform.forward * 0.5f;
+        Collider[] hits = Physics.OverlapSphere(origin, range, enemyLayer);
 
         foreach (Collider hit in hits)
         {
@@ -254,15 +255,17 @@ public class PlayerCombat : MonoBehaviour
 
     private void ShootArrow(LongRangeWeaponData bow)
     {
-        if (!bow.HasAmmo)
-        {
-            Debug.Log("[PlayerCombat] Sin munición.");
-            return;
-        }
-
         if (bow.projectilePrefab == null)
         {
             Debug.LogWarning("[PlayerCombat] El arco no tiene projectilePrefab asignado.");
+            return;
+        }
+
+        // Buscar flechas en el inventario (slots generales 3-8)
+        int ammoSlot = FindAmmoSlot();
+        if (ammoSlot < 0)
+        {
+            Debug.Log("[PlayerCombat] Sin flechas en el inventario.");
             return;
         }
 
@@ -279,8 +282,27 @@ public class PlayerCombat : MonoBehaviour
             arrow.speed  = bow.projectileSpeed;
         }
 
-        bow.ConsumeAmmo();
-        Debug.Log($"[PlayerCombat] Flecha disparada | Munición restante: {bow.currentAmmo}/{bow.maxAmmo}");
+        // Consumir una flecha del inventario
+        int remaining = Inventory.Instance.GetSlot(ammoSlot).quantity - 1;
+        Inventory.Instance.UseItem(ammoSlot);
+        Debug.Log($"[PlayerCombat] Flecha disparada | Flechas restantes: {remaining}");
+    }
+
+    /// <summary>
+    /// Busca el primer slot del inventario (general, índices 3-8) que contenga AmmoData.
+    /// Devuelve el índice del slot o -1 si no hay flechas.
+    /// </summary>
+    private int FindAmmoSlot()
+    {
+        if (Inventory.Instance == null) return -1;
+
+        for (int i = Inventory.WEAPON_SLOTS; i < Inventory.TOTAL_SLOTS; i++)
+        {
+            Inventory.Slot slot = Inventory.Instance.GetSlot(i);
+            if (!slot.IsEmpty && slot.item.itemType == ItemType.Ammo)
+                return i;
+        }
+        return -1;
     }
 
     // ─────────────────────────────────────────────
@@ -340,10 +362,10 @@ public class PlayerCombat : MonoBehaviour
     // Gizmo de depuracion: muestra los rangos de ataque en el editor
     private void OnDrawGizmosSelected()
     {
+        Vector3 origin = transform.position + Vector3.up * 1.2f + transform.forward * 0.5f;
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, basicAttackRange);
-
+        Gizmos.DrawWireSphere(origin, basicAttackRange);
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, heavyAttackRange);
+        Gizmos.DrawWireSphere(origin, heavyAttackRange);
     }
 }

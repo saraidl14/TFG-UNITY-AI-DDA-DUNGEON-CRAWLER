@@ -232,8 +232,12 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log("[GameManager] Jugador muerto. Procesando...");
 
-        // Guardar recursos que sobreviven a la muerte
+        // Guardar recursos que sobreviven a la muerte (monedas y pociones)
         SaveOnDeath();
+
+        // Limpiar inventario: armas y objetos se pierden en game over
+        if (Inventory.Instance != null)
+            Inventory.Instance.ClearAll();
 
         // Calcular puntuacion final con penalizacion de muerte
         if (ScoreManager.Instance != null)

@@ -14,10 +14,10 @@ public class RoomSpawns : MonoBehaviour
     private static HashSet<Vector2Int> _spawnedPositions = new HashSet<Vector2Int>();
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    private static void ResetRegistry()
-    {
-        _spawnedPositions.Clear();
-    }
+    private static void ResetRegistry() => _spawnedPositions.Clear();
+
+    /// <summary>Llamado por RoomGenerateTemplates.Awake() al iniciar cada nueva mazmorra.</summary>
+    public static void ResetStatic() => _spawnedPositions.Clear();
 
     private RoomGenerateTemplates templates;
     public bool spawned = false;

@@ -90,7 +90,7 @@ public abstract class EnemyBase : MonoBehaviour
     /// Cada subclase guarda sus stats base en Awake() ANTES de llamar a Start(),
     /// por lo que aqui ya estan disponibles y se multiplican correctamente.
     /// </summary>
-    protected void ApplyCurrentDifficultyScaling()
+    protected virtual void ApplyCurrentDifficultyScaling()
     {
         if (DifficultyManager.Instance == null) return;
 

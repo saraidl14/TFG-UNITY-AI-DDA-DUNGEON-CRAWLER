@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Arco
   m_EditorClassIdentifier: 
   itemName: 'Arco '
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: bf0197d08b4d09645980b6e5feed7509, type: 3}
   description: Arco a punto de romperse.
   itemType: 0
   stackable: 0

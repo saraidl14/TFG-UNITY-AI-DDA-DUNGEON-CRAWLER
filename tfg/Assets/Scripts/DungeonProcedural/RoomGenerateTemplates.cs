@@ -82,6 +82,15 @@ public class RoomGenerateTemplates : MonoBehaviour
     // CICLO DE VIDA
     // ─────────────────────────────────────────────
 
+    private void Awake()
+    {
+        // Limpiar registros estáticos al empezar una nueva mazmorra
+        // (RuntimeInitializeOnLoadMethod solo funciona al arrancar el juego, no al cambiar de escena)
+        RoomSpawns.ResetStatic();
+        AddRooms.OccupiedPositions.Clear();
+        rooms.Clear();
+    }
+
     private void Start()
     {
         StartCoroutine(WaitForGenerationAndSpawn());
@@ -306,20 +315,37 @@ public class RoomGenerateTemplates : MonoBehaviour
             ChestData picked = RollChestType(level);
             if (picked == null) continue;
 
-            // Posición: esquina si hay enemigos (salas normales), centro si está vacía
+            // Posición XZ: esquina si hay enemigos, centro si no
             bool hasEnemies = room.GetComponentInChildren<EnemyBase>() != null;
             Vector3 spawnPos = hasEnemies
                 ? GetRoomCorner(room)
                 : GetRoomCenter(room);
 
-            spawnPos += Vector3.up * 0.1f; // Elevar levemente sobre el suelo
+            // ── Corrección de Y usando el NavMesh (ya horneado) ──
+            // Buscar desde 10u POR ENCIMA del transform de la sala (punto de referencia fiable).
+            // No usamos spawnPos.y porque GetRoomCenter puede devolver un Y erróneo.
+            NavMeshHit nmHit;
+            Vector3 searchOrigin = new Vector3(spawnPos.x,
+                                               room.transform.position.y + 10f,
+                                               spawnPos.z);
+            if (NavMesh.SamplePosition(searchOrigin, out nmHit, 15f, NavMesh.AllAreas))
+            {
+                // +0.25f asegura que el cofre queda por encima aunque el pivot no esté en la base
+                spawnPos = new Vector3(spawnPos.x, nmHit.position.y + 0.25f, spawnPos.z);
+                Debug.Log($"[SpawnHelps] {room.name} → NavMesh Y={nmHit.position.y:F2} → cofre Y={spawnPos.y:F2}");
+            }
+            else
+            {
+                // Si el NavMesh no cubre esa zona, fallback al transform de la sala + margen
+                spawnPos = new Vector3(spawnPos.x, room.transform.position.y + 0.25f, spawnPos.z);
+                Debug.LogWarning($"[SpawnHelps] {room.name} → NavMesh no encontrado, Y fallback={spawnPos.y:F2}");
+            }
 
             GameObject chest = Instantiate(chestPrefab, spawnPos, Quaternion.identity);
             ChestController cc = chest.GetComponent<ChestController>();
             if (cc != null) cc.SetChestData(picked);
 
-            Debug.Log($"[RoomGenerateTemplates] Cofre {picked.chestName} spawneado en {room.name} " +
-                      $"({(hasEnemies ? "esquina" : "centro")})");
+            Debug.Log($"[RoomGenerateTemplates] Cofre {picked.chestName} en {room.name} pos={spawnPos}");
         }
     }
 
@@ -397,6 +423,7 @@ public class RoomGenerateTemplates : MonoBehaviour
         int floorLayer = LayerMask.NameToLayer("Suelo");
         Collider[] colliders = room.GetComponentsInChildren<Collider>();
 
+        // ── Intento 1: collider en capa "Suelo" ──
         Bounds floorBounds = new Bounds();
         bool found = false;
         foreach (Collider c in colliders)
@@ -411,13 +438,43 @@ public class RoomGenerateTemplates : MonoBehaviour
             Vector3 center = new Vector3(floorBounds.center.x,
                                          floorBounds.max.y + 0.05f,
                                          floorBounds.center.z);
-            Debug.Log($"[RoomCenter] {room.name} → suelo encontrado → {center}");
             return center;
         }
 
-        Debug.LogWarning($"[RoomCenter] {room.name} → SIN collider en capa 'Suelo' " +
-                         $"(layer={LayerMask.NameToLayer("Suelo")}) → fallback: {room.transform.position}. " +
-                         $"Colliders en la sala: {room.GetComponentsInChildren<Collider>().Length}");
+        // ── Intento 2: sin capa "Suelo" → usar el collider con el centro más bajo (el suelo) ──
+        Bounds allBounds   = new Bounds();
+        bool   anyFound    = false;
+        Collider lowestCol = null;
+        float lowestCY     = float.MaxValue;
+
+        foreach (Collider c in colliders)
+        {
+            if (c.isTrigger) continue;
+            if (!anyFound) { allBounds = c.bounds; anyFound = true; }
+            else           allBounds.Encapsulate(c.bounds);
+
+            if (c.bounds.center.y < lowestCY)
+            {
+                lowestCY  = c.bounds.center.y;
+                lowestCol = c;
+            }
+        }
+
+        if (anyFound)
+        {
+            // El collider con el centro Y más bajo es el suelo → usar su cara superior
+            float floorY = lowestCol != null
+                ? lowestCol.bounds.max.y + 0.05f
+                : allBounds.min.y + 0.5f;
+
+            Vector3 center = new Vector3(allBounds.center.x, floorY, allBounds.center.z);
+            Debug.LogWarning($"[RoomCenter] {room.name} → sin capa 'Suelo', estimando suelo por collider más bajo → Y={floorY:F2}. " +
+                             "Asigna la capa 'Suelo' al suelo del prefab de sala para mayor precisión.");
+            return center;
+        }
+
+        // ── Intento 3: posición del transform (último recurso) ──
+        Debug.LogWarning($"[RoomCenter] {room.name} → sin colliders, usando transform.position.");
         return room.transform.position;
     }
 

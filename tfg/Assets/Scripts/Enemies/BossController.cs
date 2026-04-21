@@ -38,12 +38,13 @@ public class BossController : EnemyBase
     protected override void Awake()
     {
         base.Awake();
-        maxHealth      = 300f;
+        maxHealth      = 300f;   // Se sobreescribe por ApplyCurrentDifficultyScaling
         damage         = 20f;
         moveSpeed      = 2.5f;
         attackRange    = 2.5f;
         attackCooldown = 1.5f;
-        detectionRange = 20f;
+        detectionRange = 25f;
+        maxRoamDistance = 8f;
         coinReward     = 100;
         currentHealth  = maxHealth;
         _baseDamage    = damage;
@@ -54,6 +55,23 @@ public class BossController : EnemyBase
     {
         base.Start();
         SetupBT();
+    }
+
+    // El boss usa su propio scaling reducido para no llegar a HP absurdas
+    protected override void ApplyCurrentDifficultyScaling()
+    {
+        if (DifficultyManager.Instance == null) return;
+        int level = DifficultyManager.Instance.currentLevel;
+
+        // nivel 1=50, nivel 5=110, nivel 10=185
+        maxHealth     = 40f + level * 10f;
+        currentHealth = maxHealth;
+        damage        = 8f  + level * 2f;    // nivel 1=10, nivel 10=28
+        moveSpeed     = 2f  + level * 0.05f;
+        _baseDamage   = damage;
+        _baseSpeed    = moveSpeed;
+
+        Debug.Log($"[BossController] Stats nivel {level} | HP:{maxHealth} | DMG:{damage}");
     }
 
     private void SetupBT()
@@ -71,7 +89,8 @@ public class BossController : EnemyBase
             new TaskBossAttack(damage, attackCooldown, false)
         });
 
-        var chase = new TaskChasePlayer(transform, moveSpeed, maxRoamDistance, spawnPosition);
+        // TaskChasePlayer con referencia al BossController para leer moveSpeed en tiempo real
+        var chase = new TaskBossChase(transform, this, maxRoamDistance, spawnPosition);
 
         _btRoot = new Selector(new List<Node> { enragedAttack, normalAttack, chase });
 
@@ -107,6 +126,13 @@ public class BossController : EnemyBase
     protected override void Die()
     {
         Debug.Log("[BossController] Boss derrotado. ¡Mazmorra completada!");
+
+        // Evaluar DDA antes de que base.Die() elimine al boss de la lista de enemigos.
+        // TriggerBossDDA garantiza que el DDA se ejecuta aunque queden enemigos vivos
+        // en otras salas (el jugador no tiene que limpiar todo para subir de dificultad).
+        if (EnemiesControllers.Instance != null)
+            EnemiesControllers.Instance.TriggerBossDDA();
+
         OnBossDead?.Invoke();
         base.Die();
     }

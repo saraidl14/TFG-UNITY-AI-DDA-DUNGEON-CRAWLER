@@ -7,10 +7,7 @@ public class AddRooms : MonoBehaviour
     public static HashSet<Vector2Int> OccupiedPositions = new HashSet<Vector2Int>();
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    private static void ResetRegistry()
-    {
-        OccupiedPositions.Clear();
-    }
+    private static void ResetRegistry() => OccupiedPositions.Clear();
 
     void Start()
     {

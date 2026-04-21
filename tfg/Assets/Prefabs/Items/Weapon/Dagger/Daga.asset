@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Daga
   m_EditorClassIdentifier: 
   itemName: Daga Comun
-  icon: {fileID: 0}
+  icon: {fileID: 92852869, guid: a28ea67fd1839794ca973600b038babd, type: 3}
   description: 
   itemType: 0
   stackable: 0
@@ -26,6 +26,6 @@ MonoBehaviour:
   modelLocalPosition: {x: 0, y: 0, z: 0}
   modelLocalRotation: {x: 0, y: 0, z: 0}
   modelLocalScale: 1
-  currentDurability: 100
+  currentDurability: 50
   upgradeLevel: 0
   comboHits: 2
