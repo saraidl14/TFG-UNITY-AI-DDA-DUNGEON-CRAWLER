@@ -17,11 +17,7 @@ using TMPro;
 ///   ├─ SlotHB_0 … SlotHB_2  (morado — armas)
 ///   └─ SlotHB_3 … SlotHB_5  (gris   — general)
 ///
-/// Cada slot hijo necesita:
-///   ├─ SelectionBorder  Image (dorado, desactivado)
-///   ├─ Icon             Image, Raycast Target OFF
-///   ├─ Quantity         TMP_Text, Raycast Target OFF
-///   └─ KeyLabel         TMP_Text, Raycast Target OFF
+/// Arrastra manualmente en el Inspector los 6 elementos de cada array (orden 0-5).
 /// </summary>
 public class HotbarUI : MonoBehaviour
 {
@@ -36,7 +32,7 @@ public class HotbarUI : MonoBehaviour
     [Header("Bordes de selección (6 slots, desactivados por defecto)")]
     public Image[] selectionBorders = new Image[6];
 
-    [Header("Iconos del ítem (6 slots)")]
+    [Header("Iconos del ítem (6 slots) — arrastrar la Image que muestra el sprite del item")]
     public Image[] icons = new Image[6];
 
     [Header("Textos de cantidad (6 slots)")]
@@ -49,9 +45,8 @@ public class HotbarUI : MonoBehaviour
     // COLORES
     // ─────────────────────────────────────────────
     [Header("Colores")]
-    public Color colorWeapon    = new Color(0.45f, 0.10f, 0.65f, 1f);
-    public Color colorGeneral   = new Color(0.18f, 0.18f, 0.18f, 1f);
-    public Color colorIconEmpty = new Color(1f, 1f, 1f, 0.10f);
+    public Color colorWeapon  = new Color(0.45f, 0.10f, 0.65f, 1f);
+    public Color colorGeneral = new Color(0.18f, 0.18f, 0.18f, 1f);
 
     // ─────────────────────────────────────────────
     // ESTADO
@@ -87,13 +82,14 @@ public class HotbarUI : MonoBehaviour
 
     private void Start()
     {
-        AutoSetupFromChildren();
-
         for (int i = 0; i < 6; i++)
         {
-            if (backgrounds[i]      != null) backgrounds[i].color      = i < 3 ? colorWeapon : colorGeneral;
+            if (backgrounds[i]      != null) backgrounds[i].color = i < 3 ? colorWeapon : colorGeneral;
             if (selectionBorders[i] != null) selectionBorders[i].gameObject.SetActive(false);
-            if (keyLabels[i]        != null) keyLabels[i].text         = (i + 1).ToString();
+            if (keyLabels[i]        != null) keyLabels[i].text    = (i + 1).ToString();
+            // Icono vacío al inicio → desactivar
+            if (icons[i]            != null) icons[i].gameObject.SetActive(false);
+            if (quantities[i]       != null) quantities[i].gameObject.SetActive(false);
         }
 
         TrySubscribeInventory();
@@ -110,60 +106,6 @@ public class HotbarUI : MonoBehaviour
 
         RefreshAll();
         EquipWeaponSlot(0);
-    }
-
-    /// <summary>
-    /// Busca automáticamente los componentes hijos en orden.
-    /// Cada hijo directo del HotbarRoot es un slot (0-5).
-    /// Dentro de cada slot busca: Image (fondo), Image hijo "Icon",
-    /// TMP_Text "Quantity", TMP_Text "KeyLabel", Image "SelectionBorder".
-    /// </summary>
-    private void AutoSetupFromChildren()
-    {
-        int childCount = Mathf.Min(transform.childCount, 6);
-
-        for (int i = 0; i < childCount; i++)
-        {
-            Transform slot = transform.GetChild(i);
-
-            // Fondo: Image en el propio slot
-            if (backgrounds[i] == null)
-                backgrounds[i] = slot.GetComponent<Image>();
-
-            // Buscar en TODOS los descendientes
-            Image[]    allImages = slot.GetComponentsInChildren<Image>(true);
-            TMP_Text[] allTexts  = slot.GetComponentsInChildren<TMP_Text>(true);
-
-            foreach (Image img in allImages)
-            {
-                if (img.transform == slot) continue; // saltar el fondo
-                string n = img.name.ToLower();
-
-                if (icons[i] == null && n.Contains("icon"))
-                    icons[i] = img;
-
-                if (selectionBorders[i] == null && (n.Contains("border") || n.Contains("selection")))
-                    selectionBorders[i] = img;
-            }
-
-            foreach (TMP_Text txt in allTexts)
-            {
-                string n = txt.name.ToLower();
-
-                if (quantities[i] == null && (n.Contains("quant") || n.Contains("qty") || n.Contains("cantidad")))
-                    quantities[i] = txt;
-
-                if (keyLabels[i] == null && (n.Contains("key") || n.Contains("label")))
-                    keyLabels[i] = txt;
-            }
-
-            Debug.Log($"[HotbarUI] Slot {i} ({slot.name}): " +
-                      $"bg={backgrounds[i]?.name ?? "NULL"}, " +
-                      $"icon={icons[i]?.name ?? "NULL"}, " +
-                      $"border={selectionBorders[i]?.name ?? "NULL"}, " +
-                      $"qty={quantities[i]?.name ?? "NULL"}, " +
-                      $"key={keyLabels[i]?.name ?? "NULL"}");
-        }
     }
 
     private void OnDestroy()
@@ -200,10 +142,10 @@ public class HotbarUI : MonoBehaviour
     /// </summary>
     public void AssignGeneralSlot(int inventorySlot)
     {
-        int hotbarIdx = 3 + _nextGeneralPin;
-        int prev      = _invMapping[hotbarIdx];
+        int hotbarIdx      = 3 + _nextGeneralPin;
+        int prev           = _invMapping[hotbarIdx];
         _invMapping[hotbarIdx] = inventorySlot;
-        _nextGeneralPin        = (_nextGeneralPin + 1) % 3;
+        _nextGeneralPin    = (_nextGeneralPin + 1) % 3;
 
         RefreshSlot(hotbarIdx);
         Debug.Log($"[HotbarUI] Tecla {hotbarIdx + 1} → inventario {inventorySlot} (antes: {prev})");
@@ -216,11 +158,16 @@ public class HotbarUI : MonoBehaviour
     {
         if (hotbarIndex < 3)
         {
+            // Al pulsar arma: limpiar los bordes generales (4-6)
+            for (int i = 3; i < 6; i++)
+                if (selectionBorders[i] != null)
+                    selectionBorders[i].gameObject.SetActive(false);
+
             EquipWeaponSlot(hotbarIndex);
         }
         else
         {
-            // Mostrar selección visual en el slot general
+            // Al pulsar general: actualizar solo los bordes generales, no tocar los de arma
             for (int i = 3; i < 6; i++)
                 if (selectionBorders[i] != null)
                     selectionBorders[i].gameObject.SetActive(i == hotbarIndex);
@@ -231,15 +178,20 @@ public class HotbarUI : MonoBehaviour
 
     public void EquipWeaponSlot(int hotbarSlot)
     {
-        _activeWeaponSlot = hotbarSlot;
+        if (_combat == null || Inventory.Instance == null) return;
 
+        // Actualizar borde de selección SIEMPRE, aunque el slot esté vacío
         for (int i = 0; i < 3; i++)
             if (selectionBorders[i] != null)
                 selectionBorders[i].gameObject.SetActive(i == hotbarSlot);
 
-        if (_combat == null || Inventory.Instance == null) return;
-        int invSlot = _invMapping[hotbarSlot]; // siempre 0/1/2 para armas
+        int invSlot = _invMapping[hotbarSlot];
         Inventory.Slot slot = Inventory.Instance.GetSlot(invSlot);
+
+        // No cambiar el arma equipada si el slot está vacío
+        if (slot.IsEmpty) return;
+
+        _activeWeaponSlot = hotbarSlot;
         _combat.SetActiveWeapon(slot.item as WeaponData);
     }
 
@@ -250,10 +202,35 @@ public class HotbarUI : MonoBehaviour
         Inventory.Slot slot = Inventory.Instance.GetSlot(invSlot);
         if (slot.IsEmpty) return;
 
+        // Escudo de maná: lógica especial (cooldown + durabilidad)
+        if (slot.item is ManaShieldData shield)
+        {
+            UseManaShield(shield, invSlot);
+            return;
+        }
+
         ItemData used = Inventory.Instance.UseItem(invSlot);
         if (used == null) return;
-
         ApplyItemEffect(used);
+    }
+
+    private void UseManaShield(ManaShieldData shield, int invSlot)
+    {
+        if (_health == null) return;
+
+        bool activated = _health.TryActivateManaShield(shield.InvincibilityDuration, shield.Cooldown);
+        if (!activated) return; // En cooldown, no consumir durabilidad
+
+        bool broken = shield.ConsumeDurability();
+        if (broken)
+            Inventory.Instance.RemoveItem(invSlot);
+        else
+            Inventory.Instance.NotifySlotChanged(invSlot);
+
+        if (MetricsTracker.Instance != null)
+            MetricsTracker.Instance.RegisterItemUsed();
+
+        Debug.Log($"[HotbarUI] Escudo de maná activado | Durabilidad: {shield.DurabilityText}");
     }
 
     private void ApplyItemEffect(ItemData used)
@@ -278,7 +255,6 @@ public class HotbarUI : MonoBehaviour
     // ─────────────────────────────────────────────
     private void OnInventorySlotChanged(int inventoryIndex)
     {
-        // Refrescar cualquier slot del hotbar que apunte a este slot de inventario
         for (int i = 0; i < 6; i++)
         {
             if (_invMapping[i] != inventoryIndex) continue;
@@ -297,22 +273,28 @@ public class HotbarUI : MonoBehaviour
     private void RefreshSlot(int hotbarIndex)
     {
         if (hotbarIndex < 0 || hotbarIndex >= 6 || Inventory.Instance == null) return;
-        int invSlot = _invMapping[hotbarIndex];
+
+        int invSlot         = _invMapping[hotbarIndex];
         Inventory.Slot slot = Inventory.Instance.GetSlot(invSlot);
+        bool empty          = slot.IsEmpty;
 
-        bool empty = slot.IsEmpty;
-
+        // ICONO: si está vacío, desactivar el GameObject entero (no deja imagen blanca)
         if (icons[hotbarIndex] != null)
         {
-            icons[hotbarIndex].enabled = !empty;
-            icons[hotbarIndex].sprite  = empty ? null : slot.item.icon;
-            icons[hotbarIndex].color   = empty ? colorIconEmpty : Color.white;
+            icons[hotbarIndex].gameObject.SetActive(!empty);
+            if (!empty)
+            {
+                icons[hotbarIndex].sprite  = slot.item.icon;
+                icons[hotbarIndex].color   = Color.white;
+                icons[hotbarIndex].enabled = true;
+            }
         }
 
+        // CANTIDAD: solo si stackable y > 1
         if (quantities[hotbarIndex] != null)
         {
             bool showQty = !empty && slot.item.stackable && slot.quantity > 1;
-            quantities[hotbarIndex].enabled = showQty;
+            quantities[hotbarIndex].gameObject.SetActive(showQty);
             if (showQty) quantities[hotbarIndex].text = $"x{slot.quantity}";
         }
     }
