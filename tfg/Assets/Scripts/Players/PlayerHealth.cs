@@ -62,6 +62,18 @@ public class PlayerHealth : MonoBehaviour
     private bool isDashing = false;
 
     // ─────────────────────────────────────────────
+    // ESCUDO DE MANÁ (invencibilidad)
+    // ─────────────────────────────────────────────
+    private bool  _isInvincible          = false;
+    private float _manaShieldCooldownEnd = -999f;
+
+    /// <summary>True si el escudo de maná está disponible (fuera de cooldown).</summary>
+    public bool ManaShieldReady => Time.time >= _manaShieldCooldownEnd;
+
+    /// <summary>Segundos restantes de cooldown del escudo (0 si está listo).</summary>
+    public float ManaShieldCooldownRemaining => Mathf.Max(0f, _manaShieldCooldownEnd - Time.time);
+
+    // ─────────────────────────────────────────────
     // REFERENCIAS
     // ─────────────────────────────────────────────
     private CharacterController characterController;
@@ -114,7 +126,8 @@ public class PlayerHealth : MonoBehaviour
     /// </summary>
     public void TakeDamage(float amount)
     {
-        if (isDashing) return; // Inmunidad durante el dash
+        if (isDashing)      return; // Inmunidad durante el dash
+        if (_isInvincible)  return; // Inmunidad por escudo de maná
 
         currentHealth -= amount;
         currentHealth  = Mathf.Max(currentHealth, 0f);
@@ -257,4 +270,34 @@ public class PlayerHealth : MonoBehaviour
     public float GetMaxHealth()     => maxHealth;
     public float GetCurrentStamina() => currentStamina;
     public float GetMaxStamina()    => maxStamina;
+
+    // ─────────────────────────────────────────────
+    // ESCUDO DE MANÁ
+    // ─────────────────────────────────────────────
+
+    /// <summary>
+    /// Intenta activar el escudo de maná.
+    /// Devuelve true si se activó (no estaba en cooldown).
+    /// </summary>
+    public bool TryActivateManaShield(float duration, float cooldown)
+    {
+        if (!ManaShieldReady)
+        {
+            Debug.Log($"[PlayerHealth] Escudo en cooldown: {ManaShieldCooldownRemaining:F1}s restantes.");
+            return false;
+        }
+
+        _manaShieldCooldownEnd = Time.time + cooldown;
+        StartCoroutine(InvincibilityCoroutine(duration));
+        return true;
+    }
+
+    private IEnumerator InvincibilityCoroutine(float duration)
+    {
+        _isInvincible = true;
+        Debug.Log($"[PlayerHealth] Escudo de maná activo ({duration}s).");
+        yield return new WaitForSeconds(duration);
+        _isInvincible = false;
+        Debug.Log("[PlayerHealth] Escudo de maná expirado.");
+    }
 }

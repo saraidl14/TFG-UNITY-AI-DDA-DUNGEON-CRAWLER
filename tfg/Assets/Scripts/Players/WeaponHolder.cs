@@ -55,7 +55,11 @@ public class WeaponHolder : MonoBehaviour
         // Aplicar los offsets definidos en el ScriptableObject del arma
         _currentModel.transform.localPosition = weapon.modelLocalPosition;
         _currentModel.transform.localRotation = Quaternion.Euler(weapon.modelLocalRotation);
-        _currentModel.transform.localScale    = Vector3.one * Mathf.Max(0.01f, weapon.modelLocalScale);
+
+        // Respetar la escala original del prefab y multiplicar por el offset del SO
+        // Si modelLocalScale es 1 (defecto), el modelo mantiene su tamaño original
+        Vector3 prefabScale = weapon.weaponModelPrefab.transform.localScale;
+        _currentModel.transform.localScale = prefabScale * Mathf.Max(0.01f, weapon.modelLocalScale);
 
         // Eliminar cualquier Collider del modelo visible (para no interferir con la física)
         foreach (Collider col in _currentModel.GetComponentsInChildren<Collider>())
