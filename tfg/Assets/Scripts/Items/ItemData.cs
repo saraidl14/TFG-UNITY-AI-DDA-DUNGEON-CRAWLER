@@ -9,6 +9,7 @@ public enum ItemType
 {
     Weapon,
     Potion,
+    Ammo,           // Flechas, bolts, etc. — stackables, consumidos al disparar
     ManaShield,
     StaminaShield,
     Other
