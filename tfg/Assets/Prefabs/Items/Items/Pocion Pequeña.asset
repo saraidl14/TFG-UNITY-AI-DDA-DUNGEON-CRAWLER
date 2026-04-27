@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 22e9aa29c00fddf4286ede8ef89cd946, type: 3}
   m_Name: "Pocion Peque\xF1a"
   m_EditorClassIdentifier: 
-  itemName: Item
+  itemName: "Pocion Peque\xF1a"
   icon: {fileID: 21300000, guid: b7a60788546c66c429baea20875af2b5, type: 3}
   description: "Pocion de recuperaci\xF3n de vida. Recupera 20 hp por consumo."
   itemType: 1

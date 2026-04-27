@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 22e9aa29c00fddf4286ede8ef89cd946, type: 3}
   m_Name: Pocion Grande
   m_EditorClassIdentifier: 
-  itemName: Item
-  icon: {fileID: 0}
+  itemName: Pocion Grande
+  icon: {fileID: 21300000, guid: d1c7c7e14f331c64e9056fff68b86126, type: 3}
   description: Recupera 50 hp
   itemType: 1
   stackable: 1

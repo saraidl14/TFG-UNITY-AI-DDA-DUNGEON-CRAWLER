@@ -7,9 +7,10 @@ using System;
 /// <summary>
 /// Slot individual del inventario. Clicable y arrastrable.
 ///
-/// CLIC normal  → selecciona el slot y avisa a InventoryUI (abre panel de detalle)
-/// SHIFT+CLIC   → pinea este slot al siguiente hueco del hotbar general (teclas 4/5/6)
-/// ARRASTRAR    → mueve el ítem a otro slot del inventario (swap)
+/// CLIC IZQUIERDO  → selecciona el slot y avisa a InventoryUI (abre panel de detalle)
+/// CLIC DERECHO    → descarta el ítem completo del slot
+/// SHIFT+CLIC      → pinea este slot al siguiente hueco del hotbar general (teclas 4/5/6)
+/// ARRASTRAR       → mueve el ítem a otro slot del inventario (swap)
 ///
 /// Estructura del GameObject en Unity:
 ///   SlotX  (Image = background, Button, este script)
@@ -19,7 +20,7 @@ using System;
 /// </summary>
 [RequireComponent(typeof(Button))]
 public class InventorySlotUI : MonoBehaviour,
-    IBeginDragHandler, IDragHandler, IEndDragHandler
+    IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     // ─────────────────────────────────────────────
     // REFERENCIAS UI
@@ -91,6 +92,29 @@ public class InventorySlotUI : MonoBehaviour,
     }
 
     // ─────────────────────────────────────────────
+    // CLIC DERECHO → DESCARTAR
+    // ─────────────────────────────────────────────
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (eventData.button != PointerEventData.InputButton.Right) return;
+        if (Inventory.Instance == null) return;
+
+        Inventory.Slot slot = Inventory.Instance.GetSlot(_slotIndex);
+        if (slot.IsEmpty) return;
+
+        string itemName = slot.item.itemName;
+        Inventory.Instance.RemoveItem(_slotIndex);
+
+        // Si el panel de detalle mostraba este slot, cerrarlo
+        ItemDetailPanel panel = FindObjectOfType<ItemDetailPanel>();
+        if (panel != null && panel.gameObject.activeSelf)
+            panel.Hide();
+
+        Debug.Log($"[InventorySlotUI] {itemName} descartado desde slot {_slotIndex} (clic derecho).");
+    }
+
+    // ─────────────────────────────────────────────
     // REFRESCO VISUAL
     // ─────────────────────────────────────────────
     public void Refresh()
@@ -124,8 +148,10 @@ public class InventorySlotUI : MonoBehaviour,
         }
         if (quantityText != null)
         {
-            bool showQty         = item.stackable && qty > 1;
+            // Mostrar cantidad para todos los stackables (incluso x1, para saber cuántos quedan)
+            bool showQty         = item.stackable;
             quantityText.enabled = showQty;
+            quantityText.color   = Color.white;
             if (showQty) quantityText.text = $"x{qty}";
         }
     }

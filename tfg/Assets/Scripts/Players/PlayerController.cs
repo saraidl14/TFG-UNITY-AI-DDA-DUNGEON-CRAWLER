@@ -31,6 +31,9 @@ public class PlayerController : MonoBehaviour
     // Boost acumulado (se reinicia al morir, persiste entre mazmorras via GameManager)
     private float _speedBoost = 0f;
 
+    // Boost temporal de pociones (se acumula y expira por corrutina)
+    private float _potionSpeedBoost = 0f;
+
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
@@ -47,7 +50,22 @@ public class PlayerController : MonoBehaviour
             _speedBoost = GameManager.Instance.AccumulatedSpeedBoost;
     }
 
-    /// <summary>Añade boost de velocidad (llamado por GameManager al derrotar al boss).</summary>
+    /// <summary>Boost de velocidad temporal por poción (se revierte al expirar).</summary>
+    public void ApplyPotionSpeedBoost(float amount, float duration)
+    {
+        StartCoroutine(PotionSpeedBoostCoroutine(amount, duration));
+    }
+
+    private System.Collections.IEnumerator PotionSpeedBoostCoroutine(float amount, float duration)
+    {
+        _potionSpeedBoost += amount;
+        Debug.Log($"[PlayerController] Speed boost poción: +{amount} durante {duration}s");
+        yield return new WaitForSeconds(duration);
+        _potionSpeedBoost = Mathf.Max(0f, _potionSpeedBoost - amount);
+        Debug.Log("[PlayerController] Speed boost poción expirado.");
+    }
+
+    /// <summary>Añade boost de velocidad permanente (llamado por GameManager al derrotar al boss).</summary>
     public void AddSpeedBoost()
     {
         _speedBoost = Mathf.Min(_speedBoost + speedBoostPerBoss, maxSpeedBoost);
@@ -78,7 +96,7 @@ public class PlayerController : MonoBehaviour
         float z = Input.GetAxis("Vertical");   // W/S
 
         Vector3 move = transform.right * x + transform.forward * z;
-        controller.Move(move * (moveSpeed + _speedBoost) * Time.deltaTime);
+        controller.Move(move * (moveSpeed + _speedBoost + _potionSpeedBoost) * Time.deltaTime);
 
         // Gravedad y salto
         if (isGrounded && velocity.y < 0)

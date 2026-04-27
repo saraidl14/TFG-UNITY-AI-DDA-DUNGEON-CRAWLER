@@ -240,14 +240,46 @@ public class HotbarUI : MonoBehaviour
         switch (used.itemType)
         {
             case ItemType.Potion:
-                float heal = used is PotionData pd ? pd.healAmount : 30f;
-                _health.Heal(heal);
-                Debug.Log($"[HotbarUI] Poción usada: +{heal:F0} HP");
+                if (used is PotionData pd)
+                {
+                    if (pd.healAmount > 0f)
+                        _health.Heal(pd.healAmount);
+                    ApplyPotionBuff(pd);
+                    Debug.Log($"[HotbarUI] Poción usada: +{pd.healAmount:F0} HP  {pd.GetBuffDescription()}");
+                }
+                else
+                {
+                    _health.Heal(30f);
+                    Debug.Log("[HotbarUI] Poción genérica: +30 HP");
+                }
                 break;
         }
 
         if (MetricsTracker.Instance != null)
             MetricsTracker.Instance.RegisterItemUsed();
+    }
+
+    /// <summary>Aplica el buff de la poción al componente correspondiente del jugador.</summary>
+    private void ApplyPotionBuff(PotionData pd)
+    {
+        if (pd.buffType == BuffType.None || pd.buffDuration <= 0f || pd.buffValue <= 0f) return;
+
+        switch (pd.buffType)
+        {
+            case BuffType.SpeedBoost:
+                PlayerController pc = FindObjectOfType<PlayerController>();
+                if (pc != null)
+                    pc.ApplyPotionSpeedBoost(pd.buffValue * pc.moveSpeed, pd.buffDuration);
+                break;
+            case BuffType.DamageBoost:
+                if (_combat != null)
+                    _combat.ApplyDamageBoost(pd.buffValue, pd.buffDuration);
+                break;
+            case BuffType.DefenseBoost:
+                if (_health != null)
+                    _health.ApplyDefenseBoost(pd.buffValue, pd.buffDuration);
+                break;
+        }
     }
 
     // ─────────────────────────────────────────────
@@ -290,11 +322,12 @@ public class HotbarUI : MonoBehaviour
             }
         }
 
-        // CANTIDAD: solo si stackable y > 1
+        // CANTIDAD: para todos los stackables (incluso x1)
         if (quantities[hotbarIndex] != null)
         {
-            bool showQty = !empty && slot.item.stackable && slot.quantity > 1;
+            bool showQty = !empty && slot.item.stackable;
             quantities[hotbarIndex].gameObject.SetActive(showQty);
+            quantities[hotbarIndex].color = Color.white;
             if (showQty) quantities[hotbarIndex].text = $"x{slot.quantity}";
         }
     }

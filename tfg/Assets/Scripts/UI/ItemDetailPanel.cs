@@ -65,6 +65,11 @@ public class ItemDetailPanel : MonoBehaviour
     [Header("Cerrar")]
     public Button closeBtn;
 
+    [Header("Descartar ítem")]
+    [Tooltip("Botón para eliminar el ítem del inventario. Visible para cualquier tipo de ítem.")]
+    public Button    discardBtn;
+    public TMP_Text  discardBtnLabel;
+
     [Header("Costes de mejora/reparación")]
     public int upgradeCostBase = 150;
     public int repairCostBase  = 50;
@@ -80,10 +85,11 @@ public class ItemDetailPanel : MonoBehaviour
     // ─────────────────────────────────────────────
     private void Awake()
     {
-        if (closeBtn   != null) closeBtn.onClick.AddListener(Hide);
-        if (upgradeBtn != null) upgradeBtn.onClick.AddListener(OnUpgrade);
-        if (repairBtn  != null) repairBtn.onClick.AddListener(OnRepair);
-        if (useBtn     != null) useBtn.onClick.AddListener(OnUse);
+        if (closeBtn    != null) closeBtn.onClick.AddListener(Hide);
+        if (upgradeBtn  != null) upgradeBtn.onClick.AddListener(OnUpgrade);
+        if (repairBtn   != null) repairBtn.onClick.AddListener(OnRepair);
+        if (useBtn      != null) useBtn.onClick.AddListener(OnUse);
+        if (discardBtn  != null) discardBtn.onClick.AddListener(OnDiscard);
     }
 
     // ─────────────────────────────────────────────
@@ -259,9 +265,17 @@ public class ItemDetailPanel : MonoBehaviour
             switch (used.itemType)
             {
                 case ItemType.Potion:
-                    float heal = used is PotionData pd ? pd.healAmount : 30f;
-                    ph.Heal(heal);
-                    Debug.Log($"[ItemDetailPanel] Poción usada: +{heal:F0} HP");
+                    if (used is PotionData pd)
+                    {
+                        if (pd.healAmount > 0f) ph.Heal(pd.healAmount);
+                        ApplyPotionBuff(pd, ph);
+                        Debug.Log($"[ItemDetailPanel] Poción: +{pd.healAmount:F0} HP  {pd.GetBuffDescription()}");
+                    }
+                    else
+                    {
+                        ph.Heal(30f);
+                        Debug.Log("[ItemDetailPanel] Poción genérica: +30 HP");
+                    }
                     break;
                 case ItemType.StaminaShield:
                     Debug.Log("[ItemDetailPanel] Escudo de stamina activado (pendiente implementación)");
@@ -315,6 +329,15 @@ public class ItemDetailPanel : MonoBehaviour
         Show(_currentSlot);
     }
 
+    private void OnDiscard()
+    {
+        if (_currentSlot < 0 || Inventory.Instance == null) return;
+        string name = _currentItem != null ? _currentItem.itemName : "ítem";
+        Inventory.Instance.RemoveItem(_currentSlot);
+        Debug.Log($"[ItemDetailPanel] {name} descartado del slot {_currentSlot}.");
+        Hide();
+    }
+
     private void OnRepair()
     {
         if (_currentSlot < 0 || GameManager.Instance == null) return;
@@ -334,6 +357,33 @@ public class ItemDetailPanel : MonoBehaviour
         Debug.Log($"[ItemDetailPanel] {weapon.itemName} reparada. -{cost} monedas");
         RefreshCoins();
         Show(_currentSlot);
+    }
+
+    // ─────────────────────────────────────────────
+    // BUFFS DE POCIÓN
+    // ─────────────────────────────────────────────
+
+    private void ApplyPotionBuff(PotionData pd, PlayerHealth ph)
+    {
+        if (pd.buffType == BuffType.None || pd.buffDuration <= 0f || pd.buffValue <= 0f) return;
+
+        switch (pd.buffType)
+        {
+            case BuffType.SpeedBoost:
+                PlayerController pc = FindObjectOfType<PlayerController>();
+                if (pc != null)
+                    pc.ApplyPotionSpeedBoost(pd.buffValue * pc.moveSpeed, pd.buffDuration);
+                break;
+            case BuffType.DamageBoost:
+                PlayerCombat combat = FindObjectOfType<PlayerCombat>();
+                if (combat != null)
+                    combat.ApplyDamageBoost(pd.buffValue, pd.buffDuration);
+                break;
+            case BuffType.DefenseBoost:
+                if (ph != null)
+                    ph.ApplyDefenseBoost(pd.buffValue, pd.buffDuration);
+                break;
+        }
     }
 
     // ─────────────────────────────────────────────

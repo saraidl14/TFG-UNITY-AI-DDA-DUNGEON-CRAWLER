@@ -67,6 +67,12 @@ public class PlayerHealth : MonoBehaviour
     private bool  _isInvincible          = false;
     private float _manaShieldCooldownEnd = -999f;
 
+    // ─────────────────────────────────────────────
+    // BUFF DE DEFENSA temporal por poción
+    // ─────────────────────────────────────────────
+    // Valor 0-1: cuánto % del daño se absorbe (0.25 = -25% daño recibido)
+    private float _defenseBuff = 0f;
+
     /// <summary>True si el escudo de maná está disponible (fuera de cooldown).</summary>
     public bool ManaShieldReady => Time.time >= _manaShieldCooldownEnd;
 
@@ -124,10 +130,29 @@ public class PlayerHealth : MonoBehaviour
     /// <summary>
     /// Aplica dano al jugador. Registra el dano en MetricsTracker para el DDA.
     /// </summary>
+    /// <summary>Aplica un boost de defensa temporal (llamado al usar una poción de defensa).</summary>
+    public void ApplyDefenseBoost(float value, float duration)
+    {
+        StartCoroutine(DefenseBoostCoroutine(value, duration));
+    }
+
+    private IEnumerator DefenseBoostCoroutine(float value, float duration)
+    {
+        _defenseBuff += value;
+        Debug.Log($"[PlayerHealth] Defense boost: -{value * 100f:F0}% daño recibido durante {duration}s");
+        yield return new WaitForSeconds(duration);
+        _defenseBuff = Mathf.Max(0f, _defenseBuff - value);
+        Debug.Log("[PlayerHealth] Defense boost expirado.");
+    }
+
     public void TakeDamage(float amount)
     {
         if (isDashing)      return; // Inmunidad durante el dash
         if (_isInvincible)  return; // Inmunidad por escudo de maná
+
+        // Reducir el daño según el buff de defensa activo (máx 90% reducción)
+        float reduction = Mathf.Clamp01(_defenseBuff);
+        amount *= (1f - reduction);
 
         currentHealth -= amount;
         currentHealth  = Mathf.Max(currentHealth, 0f);

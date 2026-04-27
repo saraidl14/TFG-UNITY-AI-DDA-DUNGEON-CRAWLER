@@ -154,11 +154,11 @@ public abstract class WeaponData : ItemData
             Debug.Log($"[WeaponData] {itemName} se ha roto. Repárala para recuperar el daño completo.");
     }
 
-    /// <summary>Restaura la durabilidad al máximo (al reparar).</summary>
+    /// <summary>Restaura la durabilidad al máximo efectivo (sube con el nivel de mejora).</summary>
     public void Repair()
     {
-        currentDurability = maxDurability;
-        Debug.Log($"[WeaponData] {itemName} reparada. Durabilidad: {currentDurability}/{maxDurability}");
+        currentDurability = GetEffectiveMaxDurability();
+        Debug.Log($"[WeaponData] {itemName} reparada. Durabilidad: {currentDurability:F0}/{GetEffectiveMaxDurability():F0}");
     }
 
     // ─────────────────────────────────────────────
@@ -191,12 +191,18 @@ public abstract class WeaponData : ItemData
         return Mathf.RoundToInt(100 * RarityMultiplier() * (upgradeLevel + 1));
     }
 
-    /// <summary>Coste de reparar = proporcional a la durabilidad perdida × rareza.</summary>
+    /// <summary>
+    /// Coste de reparar = proporcional a la durabilidad perdida × rareza.
+    /// Solo permite reparar si se ha gastado al menos el 30% de la durabilidad efectiva.
+    /// Cuanto menos gastada, más barato (proporcional).
+    /// </summary>
     public int GetRepairCost()
     {
-        if (!IsBroken && currentDurability >= maxDurability) return 0;
-        float missing = maxDurability - currentDurability;
-        return Mathf.RoundToInt((missing / maxDurability) * 80f * RarityMultiplier());
+        float effMax  = GetEffectiveMaxDurability();
+        float missing = effMax - currentDurability;
+        // Bloquear reparación si el desgaste es menor del 30%
+        if (missing < effMax * 0.30f) return 0;
+        return Mathf.RoundToInt((missing / effMax) * 80f * RarityMultiplier());
     }
 
     private float RarityMultiplier() => rarity switch

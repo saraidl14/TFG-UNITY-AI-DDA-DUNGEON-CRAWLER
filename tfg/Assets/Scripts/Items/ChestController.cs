@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class ChestController : MonoBehaviour
@@ -11,8 +12,8 @@ public class ChestController : MonoBehaviour
     public bool firstDungeonOnly = false;
 
     [Header("Loot garantizado (siempre se da al abrir)")]
-    [Tooltip("Ítems que se entregan siempre, además del sorteo de ChestData. Usar para el cofre inicial (arco + flechas).")]
-    public System.Collections.Generic.List<LootEntry> guaranteedLoot = new();
+    [Tooltip("Ítems que se entregan siempre, además del sorteo de ChestData.")]
+    public List<LootEntry> guaranteedLoot = new();
 
     [Header("Interacción")]
     public KeyCode interactKey = KeyCode.E;
@@ -28,9 +29,12 @@ public class ChestController : MonoBehaviour
     private bool _isOpen       = false;
     private bool _playerNearby = false;
 
+    // Loot rodado al abrir el cofre (pendiente de entregar)
+    private List<(ItemData item, int qty)> _pendingLoot = new();
+
+    // ─────────────────────────────────────────────
     private void Start()
     {
-        // Destruir el cofre si solo debe aparecer en la primera mazmorra
         if (firstDungeonOnly && GameManager.Instance != null && GameManager.Instance.DungeonNumber > 1)
         {
             Destroy(gameObject);
@@ -67,37 +71,92 @@ public class ChestController : MonoBehaviour
         InteractPromptUI.Instance?.Hide();
     }
 
+    // ─────────────────────────────────────────────
+    // ABRIR
+    // ─────────────────────────────────────────────
+
     private void Open()
     {
         if (_isOpen) return;
         _isOpen = true;
 
         InteractPromptUI.Instance?.Hide();
-        StartCoroutine(AnimateOpen());
 
-        // ── Loot garantizado (siempre) ──
+        // ── 1. Rodar TODO el loot al abrir (guardado para darlo tras la animación) ──
+        _pendingLoot.Clear();
+
         foreach (LootEntry entry in guaranteedLoot)
         {
             if (entry == null || entry.item == null) continue;
-            int qty = Random.Range(entry.minQuantity, entry.maxQuantity + 1);
-            StartCoroutine(AddToInventoryAfterAnim(entry.item, qty));
+            int qty = Mathf.Max(1, Random.Range(entry.minQuantity, entry.maxQuantity + 1));
+            _pendingLoot.Add((entry.item, qty));
         }
 
-        // ── Loot aleatorio de ChestData ──
         if (chestData != null)
         {
             LootEntry result = chestData.RollLoot();
             if (result != null && result.item != null)
             {
-                int qty = Random.Range(result.minQuantity, result.maxQuantity + 1);
-                StartCoroutine(AddToInventoryAfterAnim(result.item, qty));
-            }
-            else
-            {
-                Debug.Log("[ChestController] El cofre no tenía loot aleatorio.");
+                int qty = Mathf.Max(1, Random.Range(result.minQuantity, result.maxQuantity + 1));
+                _pendingLoot.Add((result.item, qty));
             }
         }
+
+        // ── 2. Animar apertura y luego intentar entregar el loot ──
+        StartCoroutine(AnimateOpen());
+        StartCoroutine(GiveLootAfterAnim());
     }
+
+    // ─────────────────────────────────────────────
+    // ENTREGA DE LOOT
+    // ─────────────────────────────────────────────
+
+    private IEnumerator GiveLootAfterAnim()
+    {
+        yield return new WaitForSeconds(openAnimDuration);
+        TryGivePendingLoot();
+    }
+
+    /// <summary>
+    /// Intenta añadir todos los ítems pendientes al inventario.
+    /// Si alguno no cabe, muestra el panel de inventario lleno.
+    /// </summary>
+    private void TryGivePendingLoot()
+    {
+        if (_pendingLoot.Count == 0) return;
+        if (Inventory.Instance == null) return;
+
+        List<(ItemData item, int qty)> failed = new();
+
+        foreach ((ItemData item, int qty) in _pendingLoot)
+        {
+            if (item == null) continue;
+            int safeQty = Mathf.Max(1, qty);          // nunca dar 0 unidades
+            bool added = Inventory.Instance.AddItem(item, safeQty);
+            if (added)
+                Debug.Log($"[ChestController] {item.itemName} x{safeQty} añadido al inventario.");
+            else
+                failed.Add((item, safeQty));
+        }
+
+        _pendingLoot.Clear();
+
+        if (failed.Count > 0)
+        {
+            // Guardar los ítems que no cupieron y avisar al jugador
+            _pendingLoot.AddRange(failed);
+            Debug.Log($"[ChestController] {failed.Count} ítem(s) no caben en el inventario. Mostrando aviso.");
+
+            if (InventoryFullPromptUI.Instance != null)
+                InventoryFullPromptUI.Instance.Show(_pendingLoot, TryGivePendingLoot);
+            else
+                Debug.LogWarning("[ChestController] InventoryFullPromptUI no encontrado en escena.");
+        }
+    }
+
+    // ─────────────────────────────────────────────
+    // ANIMACIÓN
+    // ─────────────────────────────────────────────
 
     private IEnumerator AnimateOpen()
     {
@@ -115,18 +174,9 @@ public class ChestController : MonoBehaviour
         chestMesh.SetBlendShapeWeight(blendShapeIndex, 100f);
     }
 
-    private IEnumerator AddToInventoryAfterAnim(ItemData item, int qty)
-    {
-        yield return new WaitForSeconds(openAnimDuration);
-
-        if (Inventory.Instance != null)
-        {
-            bool added = Inventory.Instance.AddItem(item, qty);
-            Debug.Log(added
-                ? $"[ChestController] {item.itemName} x{qty} añadido al inventario."
-                : $"[ChestController] Inventario lleno.");
-        }
-    }
+    // ─────────────────────────────────────────────
+    // API PÚBLICA
+    // ─────────────────────────────────────────────
 
     public void SetChestData(ChestData data)
     {

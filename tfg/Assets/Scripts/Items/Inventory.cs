@@ -100,6 +100,7 @@ public class Inventory : MonoBehaviour
     public bool AddItem(ItemData item, int quantity = 1)
     {
         if (item == null) return false;
+        if (quantity <= 0) { Debug.LogWarning($"[Inventory] AddItem cantidad inválida ({quantity}) para {item.itemName}. Se ignora."); return false; }
 
         // Clonar SOs que tienen estado runtime propio (durabilidad, munición…)
         if (item is WeaponData || item is ManaShieldData)
@@ -108,37 +109,47 @@ public class Inventory : MonoBehaviour
         int start = item.itemType == ItemType.Weapon ? 0             : WEAPON_SLOTS;
         int end   = item.itemType == ItemType.Weapon ? WEAPON_SLOTS  : TOTAL_SLOTS;
 
-        // 1. Si es stackable, buscar slot existente con el mismo ítem
+        int remaining = quantity;
+
+        // 1. Si es stackable, rellenar slots existentes parciales (con overflow a los siguientes)
         if (item.stackable)
         {
-            for (int i = start; i < end; i++)
+            for (int i = start; i < end && remaining > 0; i++)
             {
                 if (_slots[i].item == item && _slots[i].quantity < item.maxStack)
                 {
-                    _slots[i].quantity += quantity;
-                    _slots[i].quantity  = Mathf.Min(_slots[i].quantity, item.maxStack);
+                    int canAdd = item.maxStack - _slots[i].quantity;
+                    int toAdd  = Mathf.Min(canAdd, remaining);
+                    _slots[i].quantity += toAdd;
+                    remaining          -= toAdd;
                     OnSlotChanged?.Invoke(i);
-                    Debug.Log($"[Inventory] +{quantity} {item.itemName} apilado en slot {i}");
-                    return true;
+                    Debug.Log($"[Inventory] +{toAdd} {item.itemName} apilado en slot {i} ({_slots[i].quantity}/{item.maxStack})");
                 }
             }
+            if (remaining <= 0) return true;
         }
 
-        // 2. Buscar primer slot vacío del rango correcto
-        for (int i = start; i < end; i++)
+        // 2. Buscar slots vacíos para el resto (puede necesitar varios si supera maxStack)
+        for (int i = start; i < end && remaining > 0; i++)
         {
-            if (_slots[i].IsEmpty)
-            {
-                _slots[i].item     = item;
-                _slots[i].quantity = quantity;
-                OnSlotChanged?.Invoke(i);
-                Debug.Log($"[Inventory] {item.itemName} añadido en slot {i}");
-                return true;
-            }
+            if (!_slots[i].IsEmpty) continue;
+
+            int toPlace        = item.stackable ? Mathf.Min(remaining, item.maxStack) : 1;
+            _slots[i].item     = item;
+            _slots[i].quantity = toPlace;
+            remaining         -= toPlace;
+            OnSlotChanged?.Invoke(i);
+            Debug.Log($"[Inventory] {item.itemName} añadido en slot {i} ({toPlace})");
+
+            if (!item.stackable) break; // no apilable → 1 por slot
         }
 
-        Debug.Log($"[Inventory] Sin espacio para {item.itemName}.");
-        return false;
+        bool atLeastSome = remaining < quantity;
+        if (!atLeastSome)
+            Debug.Log($"[Inventory] Sin espacio para {item.itemName}.");
+        else if (remaining > 0)
+            Debug.Log($"[Inventory] {item.itemName}: solo {quantity - remaining}/{quantity} añadidos (inventario casi lleno).");
+        return atLeastSome;
     }
 
     /// <summary>Dispara OnSlotChanged externamente (para refrescar UI tras cambios de durabilidad).</summary>

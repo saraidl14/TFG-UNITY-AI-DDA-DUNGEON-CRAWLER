@@ -47,7 +47,7 @@ public class PotionData : ItemData
         // Forzar tipo correcto (útil al crear el asset por primera vez)
         itemType  = ItemType.Potion;
         stackable = true;
-        if (maxStack < 2) maxStack = 5;
+        if (maxStack < 2) maxStack = 100;
     }
 
     // ─────────────────────────────────────────────

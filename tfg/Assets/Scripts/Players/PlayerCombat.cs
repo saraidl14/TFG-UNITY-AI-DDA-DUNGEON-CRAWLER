@@ -86,6 +86,9 @@ public class PlayerCombat : MonoBehaviour
     private float _defaultHeavyDamage;
     private float _defaultHeavyRange;
 
+    // Boost de daño temporal por poción (0 = sin boost, 0.25 = +25%)
+    private float _damageBuff = 0f;
+
     // ─────────────────────────────────────────────
     // REFERENCIAS
     // ─────────────────────────────────────────────
@@ -186,8 +189,26 @@ public class PlayerCombat : MonoBehaviour
     /// Detecta enemigos en el rango con OverlapSphere y aplica dano.
     /// Punto de origen: posicion del jugador.
     /// </summary>
+    /// <summary>Aplica un boost de daño temporal (llamado al usar una poción de daño).</summary>
+    public void ApplyDamageBoost(float value, float duration)
+    {
+        StartCoroutine(DamageBoostCoroutine(value, duration));
+    }
+
+    private System.Collections.IEnumerator DamageBoostCoroutine(float value, float duration)
+    {
+        _damageBuff += value;
+        Debug.Log($"[PlayerCombat] Damage boost: +{value * 100f:F0}% durante {duration}s");
+        yield return new WaitForSeconds(duration);
+        _damageBuff = Mathf.Max(0f, _damageBuff - value);
+        Debug.Log("[PlayerCombat] Damage boost expirado.");
+    }
+
     private void PerformAttack(float damage, float range)
     {
+        // Aplicar buff de daño
+        float finalDamage = damage * (1f + _damageBuff);
+
         // Origen desde el pecho del jugador hacia adelante, no desde los pies
         Vector3 origin = transform.position + Vector3.up * 1.2f + transform.forward * 0.5f;
         Collider[] hits = Physics.OverlapSphere(origin, range, enemyLayer);
@@ -199,10 +220,10 @@ public class PlayerCombat : MonoBehaviour
 
             // Aplicar dano al enemigo
             float hpBefore = enemy.GetCurrentHealth();
-            enemy.TakeDamage(damage);
+            enemy.TakeDamage(finalDamage);
             float hpAfter = enemy.GetCurrentHealth();
 
-            Debug.Log($"[PlayerCombat] Dano {damage} a {hit.name} | HP: {hpBefore} -> {hpAfter}");
+            Debug.Log($"[PlayerCombat] Dano {finalDamage:F1} a {hit.name} | HP: {hpBefore} -> {hpAfter}");
 
             // Verificar si el enemigo murio (HP llego a 0)
             if (hpAfter <= 0f)
@@ -278,7 +299,7 @@ public class PlayerCombat : MonoBehaviour
         Arrow arrow = arrowGO.GetComponent<Arrow>();
         if (arrow != null)
         {
-            arrow.damage = bow.GetEffectiveDamage();
+            arrow.damage = bow.GetEffectiveDamage() * (1f + _damageBuff);
             arrow.speed  = bow.projectileSpeed;
         }
 
