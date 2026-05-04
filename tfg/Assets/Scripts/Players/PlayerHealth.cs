@@ -64,14 +64,14 @@ public class PlayerHealth : MonoBehaviour
     // ─────────────────────────────────────────────
     // ESCUDO DE MANÁ (invencibilidad)
     // ─────────────────────────────────────────────
-    private bool  _isInvincible          = false;
+    [SerializeField] private bool  _isInvincible          = false;   // visible en Inspector para depurar
     private float _manaShieldCooldownEnd = -999f;
 
     // ─────────────────────────────────────────────
     // BUFF DE DEFENSA temporal por poción
     // ─────────────────────────────────────────────
-    // Valor 0-1: cuánto % del daño se absorbe (0.25 = -25% daño recibido)
-    private float _defenseBuff = 0f;
+    // Valor 0-1: cuánto % del daño se absorbe (0.25 = -25% daño recibido). Máx 90%.
+    [SerializeField] private float _defenseBuff = 0f;               // visible en Inspector para depurar
 
     /// <summary>True si el escudo de maná está disponible (fuera de cooldown).</summary>
     public bool ManaShieldReady => Time.time >= _manaShieldCooldownEnd;
@@ -127,9 +127,6 @@ public class PlayerHealth : MonoBehaviour
     // SALUD
     // ─────────────────────────────────────────────
 
-    /// <summary>
-    /// Aplica dano al jugador. Registra el dano en MetricsTracker para el DDA.
-    /// </summary>
     /// <summary>Aplica un boost de defensa temporal (llamado al usar una poción de defensa).</summary>
     public void ApplyDefenseBoost(float value, float duration)
     {
@@ -145,23 +142,36 @@ public class PlayerHealth : MonoBehaviour
         Debug.Log("[PlayerHealth] Defense boost expirado.");
     }
 
+    /// <summary>Aplica daño al jugador. Registra el daño en MetricsTracker para el DDA.</summary>
     public void TakeDamage(float amount)
     {
-        if (isDashing)      return; // Inmunidad durante el dash
-        if (_isInvincible)  return; // Inmunidad por escudo de maná
+        if (isDashing)
+        {
+            Debug.Log("[PlayerHealth] TakeDamage ignorado → DASH activo");
+            return;
+        }
+        if (_isInvincible)
+        {
+            Debug.Log("[PlayerHealth] TakeDamage ignorado → INVENCIBLE (escudo de maná)");
+            return;
+        }
 
-        // Reducir el daño según el buff de defensa activo (máx 90% reducción)
-        float reduction = Mathf.Clamp01(_defenseBuff);
+        // Reducir el daño según el buff de defensa activo. Máx 90% de reducción
+        // (nunca 100% para que los enemigos siempre puedan hacer daño).
+        float reduction = Mathf.Clamp(_defenseBuff, 0f, 0.9f);
+        if (reduction > 0f)
+            Debug.Log($"[PlayerHealth] Buff defensa activo: {reduction * 100f:F0}% reducción");
+
         amount *= (1f - reduction);
 
         currentHealth -= amount;
         currentHealth  = Mathf.Max(currentHealth, 0f);
 
-        // Registrar dano en metricas DDA
+        // Registrar daño en métricas DDA
         if (MetricsTracker.Instance != null)
             MetricsTracker.Instance.RegisterDamage(amount);
 
-        Debug.Log($"[PlayerHealth] Dano recibido: {amount} | Salud restante: {currentHealth}");
+        Debug.Log($"[PlayerHealth] Daño: {amount:F1} | HP: {currentHealth:F0}/{maxHealth:F0}");
 
         if (currentHealth <= 0f)
             Die();
@@ -321,8 +331,19 @@ public class PlayerHealth : MonoBehaviour
     {
         _isInvincible = true;
         Debug.Log($"[PlayerHealth] Escudo de maná activo ({duration}s).");
-        yield return new WaitForSeconds(duration);
+        // WaitForSecondsRealtime: no se pausa con Time.timeScale=0 (ej: menú de inventario)
+        yield return new WaitForSecondsRealtime(duration);
         _isInvincible = false;
         Debug.Log("[PlayerHealth] Escudo de maná expirado.");
+    }
+
+    /// <summary>Resetea la invencibilidad y el buff de defensa. Solo para depuración en Editor.</summary>
+    [ContextMenu("DEBUG: Resetear invencibilidad y buffs")]
+    private void DEBUG_ResetInvincibilityAndBuffs()
+    {
+        _isInvincible = false;
+        _defenseBuff  = 0f;
+        StopAllCoroutines();
+        Debug.Log("[PlayerHealth] DEBUG: Invencibilidad y buffs reseteados.");
     }
 }

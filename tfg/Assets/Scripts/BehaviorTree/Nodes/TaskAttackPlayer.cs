@@ -12,10 +12,17 @@ public class TaskAttackPlayer : Node
     private float _attackCooldown;
     private float _lastAttackTime = -999f;
 
-    public TaskAttackPlayer(float damage, float attackCooldown)
+    /// <summary>
+    /// Callback opcional: se invoca justo cuando el ataque impacta.
+    /// Úsalo para lanzar la animación de ataque desde el controlador del enemigo.
+    /// </summary>
+    private readonly System.Action _onAttack;
+
+    public TaskAttackPlayer(float damage, float attackCooldown, System.Action onAttack = null)
     {
         _damage         = damage;
         _attackCooldown = attackCooldown;
+        _onAttack       = onAttack;
     }
 
     public override NodeState Evaluate()
@@ -37,11 +44,24 @@ public class TaskAttackPlayer : Node
         Transform player = (Transform)playerObj;
         PlayerHealth playerHealth = player.GetComponent<PlayerHealth>();
 
+        if (playerHealth == null)
+        {
+            // Buscar también en padres/hijos por si PlayerHealth no está en el root
+            playerHealth = player.GetComponentInParent<PlayerHealth>();
+            if (playerHealth == null)
+                playerHealth = player.GetComponentInChildren<PlayerHealth>();
+        }
+
         if (playerHealth != null)
         {
             playerHealth.TakeDamage(_damage);
             _lastAttackTime = Time.time;
-            Debug.Log($"[TaskAttackPlayer] Ataque ejecutado. Dano: {_damage}");
+            _onAttack?.Invoke();   // notifica al controlador del enemigo (animación, etc.)
+            Debug.Log($"[TaskAttackPlayer] Ataque ejecutado. Daño: {_damage}");
+        }
+        else
+        {
+            Debug.LogWarning("[TaskAttackPlayer] PlayerHealth no encontrado en el jugador. ¿Está el componente en el prefab?");
         }
 
         state = NodeState.SUCCESS;

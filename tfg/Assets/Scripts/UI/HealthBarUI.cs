@@ -5,13 +5,8 @@ using TMPro;
 
 /// <summary>
 /// Controla la barra de vida y stamina del jugador en el HUD.
-///
-/// Requiere en la escena:
-///   - Slider o Image (fillAmount) para la vida    → asignar en healthBar
-///   - Slider o Image (fillAmount) para la stamina → asignar en staminaBar
-///   - Image de pantalla completa semitransparente  → asignar en damageFlash
-///
-/// El efecto de daño hace un flash rojo en pantalla al recibir golpes.
+/// Ambas barras se animan con lerp suave hacia el valor real.
+/// Al recibir daño también hay un flash rojo en pantalla.
 /// </summary>
 public class HealthBarUI : MonoBehaviour
 {
@@ -20,33 +15,33 @@ public class HealthBarUI : MonoBehaviour
     // ─────────────────────────────────────────────
 
     [Header("Barra de Vida")]
-    [Tooltip("Slider o Image con ImageType = Filled para la vida.")]
-    public Slider healthBar;
-
-    [Tooltip("Texto opcional que muestra HP actual / HP max.")]
+    public Slider   healthBar;
     public TMP_Text healthText;
 
+    [Tooltip("Velocidad del lerp al bajar (daño).")]
+    public float healthLerpDown = 5f;
+    [Tooltip("Velocidad del lerp al subir (curación).")]
+    public float healthLerpUp   = 3f;
+
     [Header("Barra de Stamina")]
-    [Tooltip("Slider o Image con ImageType = Filled para la stamina.")]
     public Slider staminaBar;
+    public float  staminaLerpSpeed = 8f;
 
     [Header("Efecto de Daño")]
-    [Tooltip("Image de pantalla completa (color rojo semitransparente) para el flash de daño.")]
     public Image damageFlash;
-
-    [Tooltip("Duracion del flash rojo en segundos.")]
     public float flashDuration = 0.2f;
-
-    [Tooltip("Opacidad maxima del flash (0-1).")]
     [Range(0f, 1f)]
     public float flashMaxAlpha = 0.35f;
 
     // ─────────────────────────────────────────────
-    // REFERENCIA AL JUGADOR
+    // ESTADO INTERNO
     // ─────────────────────────────────────────────
 
     private PlayerHealth _playerHealth;
-    private float _lastHealth;
+    private float        _lastHealth;
+    private float        _healthDisplay   = 1f;   // valor animado de la barra de vida
+    private float        _staminaDisplay  = 1f;   // valor animado de la barra de stamina
+    private bool         _flashRunning    = false;
 
     // ─────────────────────────────────────────────
     // CICLO DE VIDA
@@ -54,7 +49,6 @@ public class HealthBarUI : MonoBehaviour
 
     private void Start()
     {
-        // Inicializar flash a transparente siempre, independientemente del player
         if (damageFlash != null)
         {
             Color c = damageFlash.color;
@@ -65,72 +59,73 @@ public class HealthBarUI : MonoBehaviour
 
     private void Update()
     {
-        // Buscar al player si todavia no se ha instanciado (spawna con delay)
         if (_playerHealth == null)
         {
             _playerHealth = FindObjectOfType<PlayerHealth>();
             if (_playerHealth == null) return;
 
-            // Primera vez que lo encontramos: inicializar lastHealth
-            _lastHealth = _playerHealth.GetCurrentHealth();
+            _lastHealth    = _playerHealth.GetCurrentHealth();
+            _healthDisplay = _lastHealth / Mathf.Max(1f, _playerHealth.GetMaxHealth());
+            _staminaDisplay = 1f;
         }
-
-        // Detectar si se ha recibido daño este frame
-        float currentHealth = _playerHealth.GetCurrentHealth();
-        if (currentHealth < _lastHealth)
-            StartCoroutine(FlashDamage());
-
-        _lastHealth = currentHealth;
 
         UpdateHealthBar();
         UpdateStaminaBar();
     }
 
     // ─────────────────────────────────────────────
-    // ACTUALIZAR BARRAS
+    // BARRA DE VIDA — lerp suave
     // ─────────────────────────────────────────────
 
     private void UpdateHealthBar()
     {
         float hp    = _playerHealth.GetCurrentHealth();
         float maxHp = _playerHealth.GetMaxHealth();
-        float ratio = maxHp > 0 ? hp / maxHp : 0f;
+        float target = maxHp > 0f ? hp / maxHp : 0f;
 
-        if (healthBar != null)
-            healthBar.value = ratio;
+        // Detectar daño → flash de pantalla
+        if (hp < _lastHealth && !_flashRunning)
+            StartCoroutine(FlashDamage());
 
-        if (healthText != null)
-            healthText.text = $"{Mathf.CeilToInt(hp)} / {Mathf.CeilToInt(maxHp)}";
+        _lastHealth = hp;
+
+        // Lerp: más rápido al bajar (daño), más lento al subir (curación)
+        float speed = (target < _healthDisplay) ? healthLerpDown : healthLerpUp;
+        _healthDisplay = Mathf.Lerp(_healthDisplay, target, speed * Time.deltaTime);
+
+        if (healthBar  != null) healthBar.value = _healthDisplay;
+        if (healthText != null) healthText.text = $"{Mathf.CeilToInt(hp)} / {Mathf.CeilToInt(maxHp)}";
     }
+
+    // ─────────────────────────────────────────────
+    // BARRA DE STAMINA — lerp suave
+    // ─────────────────────────────────────────────
 
     private void UpdateStaminaBar()
     {
+        if (staminaBar == null) return;
+
         float stamina    = _playerHealth.GetCurrentStamina();
         float maxStamina = _playerHealth.GetMaxStamina();
-        float ratio      = maxStamina > 0 ? stamina / maxStamina : 0f;
+        float target     = maxStamina > 0f ? stamina / maxStamina : 0f;
 
-        if (staminaBar != null)
-            staminaBar.value = ratio;
+        _staminaDisplay  = Mathf.Lerp(_staminaDisplay, target, staminaLerpSpeed * Time.deltaTime);
+        staminaBar.value = _staminaDisplay;
     }
 
     // ─────────────────────────────────────────────
-    // EFECTO FLASH DE DAÑO
+    // FLASH DE DAÑO
     // ─────────────────────────────────────────────
 
-    /// <summary>
-    /// Hace un flash rojo semitransparente en pantalla al recibir daño.
-    /// Aparece rapido y desaparece gradualmente.
-    /// </summary>
     private IEnumerator FlashDamage()
     {
         if (damageFlash == null) yield break;
+        _flashRunning = true;
 
-        // Aparecer instantaneo
         Color c = damageFlash.color;
         c.a = flashMaxAlpha;
         damageFlash.color = c;
 
-        // Desvanecerse gradualmente
         float elapsed = 0f;
         while (elapsed < flashDuration)
         {
@@ -142,5 +137,6 @@ public class HealthBarUI : MonoBehaviour
 
         c.a = 0f;
         damageFlash.color = c;
+        _flashRunning = false;
     }
 }

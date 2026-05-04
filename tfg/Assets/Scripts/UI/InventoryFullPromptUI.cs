@@ -7,12 +7,16 @@ using System.Collections.Generic;
 /// Panel modal que aparece cuando el jugador intenta abrir un cofre con el inventario lleno.
 /// Muestra qué ítems contiene el cofre y da opciones para liberar espacio.
 ///
-/// SETUP EN UNITY (hijo del HUD Canvas, desactivado por defecto):
-///   InventoryFullPrompt  (Image fondo oscuro semitransparente, este script)
-///   ├─ TitleText         (TMP_Text)  ← "¡Inventario lleno!"
-///   ├─ ItemsText         (TMP_Text)  ← lista de ítems del cofre
-///   ├─ OpenInventoryBtn  (Button)    ← "Abrir inventario"
-///   └─ CloseBtn          (Button)    ← "Ignorar loot"
+/// SETUP EN UNITY:
+///   InventoryFull   (root, SIEMPRE ACTIVO, este script)
+///   └─ InvFul       (panel visual hijo — arrastrar a panelContent — empieza DESACTIVADO)
+///       ├─ Title    (TMP_Text)  → titleText
+///       ├─ Items    (TMP_Text)  → itemsText
+///       ├─ Open     (Button)   → openInventoryBtn
+///       └─ Close    (Button)   → closeBtn
+///
+/// IMPORTANTE: el root "InventoryFull" debe estar ACTIVADO en la escena para que
+/// Awake() registre el singleton. El panel hijo "InvFul" empieza desactivado.
 /// </summary>
 public class InventoryFullPromptUI : MonoBehaviour
 {
@@ -21,20 +25,20 @@ public class InventoryFullPromptUI : MonoBehaviour
     // ─────────────────────────────────────────────
     // REFERENCIAS UI
     // ─────────────────────────────────────────────
-    [Header("Textos")]
+    [Header("Panel hijo que se muestra/oculta (arrastrar InvFul aquí)")]
+    public GameObject panelContent;
+
+    [Header("Textos (dentro de InvFul)")]
     public TMP_Text titleText;
     public TMP_Text itemsText;
 
-    [Header("Botones")]
+    [Header("Botones (dentro de InvFul)")]
     public Button openInventoryBtn;
     public Button closeBtn;
 
     // ─────────────────────────────────────────────
     // ESTADO
     // ─────────────────────────────────────────────
-
-    // Callback que se ejecuta cuando el jugador confirma haber hecho espacio.
-    // ChestController lo usa para re-intentar dar el loot.
     private System.Action _onInventoryFreed;
 
     // ─────────────────────────────────────────────
@@ -42,13 +46,15 @@ public class InventoryFullPromptUI : MonoBehaviour
     // ─────────────────────────────────────────────
     private void Awake()
     {
+        // El root SIEMPRE está activo → Awake se ejecuta → Instance queda registrado
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
 
         if (openInventoryBtn != null) openInventoryBtn.onClick.AddListener(OnOpenInventory);
         if (closeBtn         != null) closeBtn.onClick.AddListener(OnIgnore);
 
-        gameObject.SetActive(false);
+        // Ocultar el panel hijo (no el root)
+        if (panelContent != null) panelContent.SetActive(false);
     }
 
     // ─────────────────────────────────────────────
@@ -57,8 +63,6 @@ public class InventoryFullPromptUI : MonoBehaviour
 
     /// <summary>
     /// Muestra el aviso con la lista de ítems que el cofre quería dar.
-    /// <param name="pendingItems">Pares (ItemData, cantidad) que no cupieron.</param>
-    /// <param name="onFreed">Llamado si el jugador libera espacio y cierra el inventario.</param>
     /// </summary>
     public void Show(List<(ItemData item, int qty)> pendingItems, System.Action onFreed)
     {
@@ -79,8 +83,23 @@ public class InventoryFullPromptUI : MonoBehaviour
             itemsText.text = sb.ToString();
         }
 
-        gameObject.SetActive(true);
-        Time.timeScale = 0f; // Pausar el juego mientras el panel está abierto
+        // Mostrar panel: usa el hijo si está asignado; si no, activa todos los hijos directos
+        if (panelContent != null)
+        {
+            panelContent.SetActive(true);
+        }
+        else
+        {
+            Debug.LogWarning("[InventoryFullPromptUI] 'Panel Content' no asignado. Arrastra 'InvFul' al campo. Usando fallback.");
+            foreach (Transform child in transform)
+                child.gameObject.SetActive(true);
+        }
+
+        // Desbloquear cursor para poder clicar los botones
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible   = true;
+
+        Time.timeScale = 0f;
     }
 
     // ─────────────────────────────────────────────
@@ -89,27 +108,24 @@ public class InventoryFullPromptUI : MonoBehaviour
 
     private void OnOpenInventory()
     {
-        // Abrir el inventario sin cerrar este panel (el jugador descarta algo)
-        InventoryUI.Instance?.Open();
-
-        // Suscribirse al cierre del inventario para intentar dar el loot de nuevo
+        InventoryUI.Instance?.Open(); // Open() ya desbloquea el cursor
         StartCoroutine(WaitForInventoryClose());
     }
 
     private System.Collections.IEnumerator WaitForInventoryClose()
     {
-        // Esperar a que el inventario se cierre
+        // WaitUntil funciona aunque timeScale=0 (evalúa cada frame de Update)
         yield return new WaitUntil(() =>
             InventoryUI.Instance == null || !InventoryUI.Instance.IsOpen);
 
-        // Intentar dar el loot de nuevo
-        Hide();
-        _onInventoryFreed?.Invoke();
+        // Guardar el callback ANTES de Hide() porque Hide() lo pone a null
+        System.Action callback = _onInventoryFreed;
+        Hide(); // oculta panel, bloquea cursor, timeScale=1
+        callback?.Invoke(); // re-intenta dar el loot (puede llamar a Show() de nuevo si aún no cabe)
     }
 
     private void OnIgnore()
     {
-        // El jugador no quiere el loot
         Hide();
         Debug.Log("[InventoryFullPromptUI] Jugador ignoró el loot del cofre.");
     }
@@ -117,7 +133,21 @@ public class InventoryFullPromptUI : MonoBehaviour
     private void Hide()
     {
         Time.timeScale = 1f;
-        gameObject.SetActive(false);
+
+        if (panelContent != null)
+        {
+            panelContent.SetActive(false);
+        }
+        else
+        {
+            foreach (Transform child in transform)
+                child.gameObject.SetActive(false);
+        }
+
+        // Volver al estado de juego: cursor oculto y bloqueado
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible   = false;
+
         _onInventoryFreed = null;
     }
 }

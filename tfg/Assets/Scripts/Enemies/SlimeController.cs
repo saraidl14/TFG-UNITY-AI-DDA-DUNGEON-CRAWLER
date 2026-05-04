@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using BehaviorTree;
@@ -15,12 +16,29 @@ using BehaviorTree;
 ///       ├─ CheckPlayerDetected
 ///       └─ TaskChasePlayer
 ///
+/// Animaciones (parámetros Animator):
+///   Attack (trigger) → animación de ataque; vuelve sola a SlimeWalk al acabar
+///
 /// Preparado para DDA: ApplyDifficultyScaling() escala stats en tiempo real.
 /// </summary>
 public class SlimeController : EnemyBase
 {
-    // Raiz del arbol BT
+    // ─────────────────────────────────────────────
+    // ANIMACIÓN
+    // ─────────────────────────────────────────────
+
+    private Animator _animator;
+    private static readonly int HashAttack = Animator.StringToHash("Attack");
+
+    // ─────────────────────────────────────────────
+    // BT
+    // ─────────────────────────────────────────────
+
     private Node _btRoot;
+
+    // ─────────────────────────────────────────────
+    // CICLO DE VIDA
+    // ─────────────────────────────────────────────
 
     protected override void Awake()
     {
@@ -32,62 +50,74 @@ public class SlimeController : EnemyBase
         attackCooldown = 1.5f;
         detectionRange = 8f;
         currentHealth  = maxHealth;
+
+        _animator = GetComponent<Animator>();
+        if (_animator == null)
+            _animator = GetComponentInChildren<Animator>();
     }
 
     protected override void Start()
     {
-        base.Start(); // Busca al jugador y guarda spawnPosition
+        base.Start();
         SetupBT();
     }
 
     // ─────────────────────────────────────────────
-    // CONSTRUCCION DEL ARBOL BT
+    // BT
     // ─────────────────────────────────────────────
 
     private void SetupBT()
     {
-        // Rama atacar: detectado + en rango + atacar
         var attackSequence = new Sequence(new List<Node>
         {
             new CheckPlayerDetected(transform, detectionRange),
             new CheckPlayerInAttackRange(transform, attackRange),
-            new TaskAttackPlayer(damage, attackCooldown)
+            new TaskAttackPlayer(damage, attackCooldown, OnAttackAnimation)
         });
 
-        // Rama perseguir: detectado + moverse hacia el jugador
         var chaseSequence = new Sequence(new List<Node>
         {
             new CheckPlayerDetected(transform, detectionRange),
             new TaskChasePlayer(transform, moveSpeed, maxRoamDistance, spawnPosition)
         });
 
-        // Raiz: intentar atacar primero, si no, perseguir
         _btRoot = new Selector(new List<Node>
         {
             attackSequence,
             chaseSequence
         });
 
-        // Guardar referencia al jugador en el blackboard
         if (player != null)
             _btRoot.SetData("player", player);
     }
 
     // ─────────────────────────────────────────────
-    // HOOK DE ENEMYBASE
+    // COMPORTAMIENTO
     // ─────────────────────────────────────────────
 
     protected override void UpdateBehavior()
     {
-        // Mantener el blackboard actualizado
         if (player != null)
             _btRoot?.SetData("player", player);
 
         _btRoot?.Evaluate();
     }
 
-    // Attack() no se usa directamente: lo gestiona TaskAttackPlayer en el BT
     protected override void Attack() { }
+
+    // ─────────────────────────────────────────────
+    // ANIMACIÓN
+    // ─────────────────────────────────────────────
+
+    /// <summary>
+    /// Callback invocado por TaskAttackPlayer al impactar.
+    /// Dispara el trigger Attack; el Animator vuelve solo a SlimeWalk al terminar.
+    /// </summary>
+    private void OnAttackAnimation()
+    {
+        if (_animator == null) return;
+        _animator.SetTrigger(HashAttack);
+    }
 
     // ─────────────────────────────────────────────
     // MUERTE
@@ -96,7 +126,14 @@ public class SlimeController : EnemyBase
     protected override void Die()
     {
         Debug.Log("[SlimeController] Slime eliminado.");
-        // TODO: particulas, drop de monedas, sonido
+        // StartCoroutine ANTES de enabled=false (no arranca en componentes desactivados)
+        StartCoroutine(DestroyAfterDelay(0.5f));
+        enabled = false;
+    }
+
+    private IEnumerator DestroyAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
         base.Die();
     }
 
@@ -104,18 +141,12 @@ public class SlimeController : EnemyBase
     // DDA: SCALING EN TIEMPO REAL
     // ─────────────────────────────────────────────
 
-    /// <summary>
-    /// Escala los stats del Slime segun el nivel de dificultad del DDA.
-    /// Llamado por DifficultyManager al subir o bajar el nivel.
-    /// </summary>
     public void ApplyDifficultyScaling(float hpMultiplier, float damageMultiplier, float speedMultiplier)
     {
         maxHealth     = 30f * hpMultiplier;
         currentHealth = maxHealth;
         damage        = 5f  * damageMultiplier;
         moveSpeed     = 2f  * speedMultiplier;
-
-        // Reconstruir BT con los nuevos stats
         SetupBT();
 
         Debug.Log($"[SlimeController] DDA aplicado | HP:{maxHealth} | DMG:{damage} | SPD:{moveSpeed}");

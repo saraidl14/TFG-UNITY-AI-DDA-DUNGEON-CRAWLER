@@ -24,14 +24,14 @@ MonoBehaviour:
       maxQuantity: 10
     - item: {fileID: 11400000, guid: b24c567afda233a4996ac5c5ff7db3a8, type: 2}
       weight: 15
-      minQuantity: 0
-      maxQuantity: 0
+      minQuantity: 1
+      maxQuantity: 5
     - item: {fileID: 11400000, guid: 59c60f5137c12dd4aa237b7d10afcf58, type: 2}
       weight: 1
       minQuantity: 1
       maxQuantity: 1
     - item: {fileID: 11400000, guid: 043243ccd445bc2498f993a9d9ffa63f, type: 2}
       weight: 20
-      minQuantity: 0
-      maxQuantity: 0
+      minQuantity: 1
+      maxQuantity: 1
   emptyChance: 0

@@ -3,58 +3,48 @@ using UnityEngine.UI;
 
 /// <summary>
 /// Barra de vida flotante sobre los enemigos.
-/// Vive en un Canvas World Space hijo del enemigo y siempre mira a la camara.
+/// Usa un Slider cuyo value baja con lerp suave al recibir daño.
 ///
-/// Colores:
-///   Verde  → HP > 60%
-///   Amarillo → HP 30-60%
-///   Rojo   → HP < 30%
-///
-/// Setup en Unity:
+/// Setup en Unity (prefab de cada enemigo):
 ///   EnemigoPrefab
 ///   └── HealthBarCanvas  (Canvas - World Space, Sort Order 5)
-///       ├── Fondo        (Image - color oscuro semitransparente, anclada a toda el area)
-///       └── Fill         (Image - Image Type = Filled, Fill Method = Horizontal)
-///                        ← asignar al campo "fillImage" del script
+///       └── HealthSlider (Slider)  ← arrastrar al campo healthSlider
+///           ├── Background  (Image oscura)
+///           └── Fill Area
+///               └── Fill    (Image roja) ← arrastrar al campo fillImage (para color)
 /// </summary>
 public class EnemyHealthBar : MonoBehaviour
 {
-    // ─────────────────────────────────────────────
-    // REFERENCIAS
-    // ─────────────────────────────────────────────
-
     [Header("Referencias")]
-    [Tooltip("Image con Image Type = Filled para representar la vida.")]
+    [Tooltip("El componente Slider de la barra de vida.")]
+    public Slider healthSlider;
+
+    [Tooltip("La Image del Fill del slider (para cambiar el color segun HP).")]
     public Image fillImage;
 
-    // ─────────────────────────────────────────────
-    // COLORES
-    // ─────────────────────────────────────────────
-
     [Header("Colores segun HP")]
-    public Color colorAlto  = Color.green;                         // HP > 60%
-    public Color colorMedio = new Color(1f, 0.65f, 0f);           // HP 30-60% (naranja)
-    public Color colorBajo  = Color.red;                           // HP < 30%
-
-    // ─────────────────────────────────────────────
-    // COMPORTAMIENTO
-    // ─────────────────────────────────────────────
+    public Color colorAlto  = Color.green;
+    public Color colorMedio = new Color(1f, 0.65f, 0f);
+    public Color colorBajo  = Color.red;
 
     [Header("Comportamiento")]
     [Tooltip("Oculta la barra cuando el enemigo tiene la vida al maximo.")]
     public bool ocultarEnMaxHP = true;
 
-    [Tooltip("Offset de altura sobre el pivote del enemigo (ajustar segun tamanyo del modelo).")]
+    [Tooltip("Offset de altura sobre el pivote del enemigo.")]
     public float alturaOffset = 1.8f;
+
+    [Tooltip("Velocidad del lerp al bajar el value de la barra.")]
+    public float lerpSpeed = 6f;
 
     // ─────────────────────────────────────────────
     // ESTADO INTERNO
     // ─────────────────────────────────────────────
 
+    private float     _displayValue = 1f;   // valor animado del slider
     private EnemyBase _enemy;
     private Camera    _mainCamera;
-    private Transform _barraTransform;
-    private Canvas    _canvas;  // referencia al Canvas de este GameObject para ocultarlo sin desactivar el script
+    private Canvas    _canvas;
 
     // ─────────────────────────────────────────────
     // CICLO DE VIDA
@@ -62,46 +52,51 @@ public class EnemyHealthBar : MonoBehaviour
 
     private void Awake()
     {
-        // Buscar el EnemyBase en el padre (el enemigo que nos contiene) 
-        _enemy          = GetComponentInParent<EnemyBase>();
-        _mainCamera     = Camera.main;
-        _barraTransform = transform;
-        _canvas         = GetComponent<Canvas>();
+        _enemy      = GetComponentInParent<EnemyBase>();
+        _mainCamera = Camera.main;
+        _canvas     = GetComponent<Canvas>();
 
-        // Posicion fija relativa al padre (el enemigo): solo altura, una vez.
-        // Como es hijo del enemigo ya se mueve con el automaticamente.
-        _barraTransform.localPosition = Vector3.up * alturaOffset;
+        transform.localPosition = Vector3.up * alturaOffset;
+
+        // ── Auto-buscar referencias si no están asignadas en el Inspector ──
+        if (healthSlider == null)
+            healthSlider = GetComponentInChildren<Slider>();
+
+        if (fillImage == null && healthSlider != null && healthSlider.fillRect != null)
+            fillImage = healthSlider.fillRect.GetComponent<Image>();
 
         if (_enemy == null)
             Debug.LogWarning("[EnemyHealthBar] No se encontro EnemyBase en el padre.");
+
+        if (healthSlider == null)
+            Debug.LogWarning("[EnemyHealthBar] No se encontro Slider. Asignalo en el Inspector o añade un Slider hijo.");
+
+        // Inicializar slider a 1 (vida completa)
+        if (healthSlider != null) healthSlider.value = 1f;
     }
 
     private void LateUpdate()
     {
         if (_enemy == null) return;
 
-        // Buscar camara si todavia no esta (por spawn delay)
         if (_mainCamera == null)
         {
             _mainCamera = Camera.main;
             if (_mainCamera == null) return;
         }
 
-        // ── Billboard: siempre mirar a la camara ──
-        // (la posicion ya la fija Awake como localPosition, no hace falta recalcularla)
-        _barraTransform.LookAt(
-            _barraTransform.position + _mainCamera.transform.rotation * Vector3.forward,
+        // Billboard: mirar siempre a la camara
+        transform.LookAt(
+            transform.position + _mainCamera.transform.rotation * Vector3.forward,
             _mainCamera.transform.rotation * Vector3.up
         );
 
-        // ── Ratio de vida ─────────────────────────
-        float ratio = _enemy.maxHealth > 0
+        // Ratio de vida real
+        float ratio = _enemy.maxHealth > 0f
             ? _enemy.GetCurrentHealth() / _enemy.maxHealth
             : 0f;
 
         // Ocultar si vida al maximo
-        // IMPORTANTE: usamos Canvas.enabled en lugar de SetActive para que LateUpdate
-        // siga corriendo aunque la barra este oculta y pueda volver a mostrarse.
         if (ocultarEnMaxHP)
         {
             bool mostrar = ratio < 0.999f;
@@ -109,17 +104,21 @@ public class EnemyHealthBar : MonoBehaviour
             if (!mostrar) return;
         }
 
-        // ── Actualizar fill ───────────────────────
-        if (fillImage == null) return;
+        if (healthSlider == null) return;
 
-        fillImage.fillAmount = Mathf.Clamp01(ratio);
+        // Animar el value del Slider con lerp suave
+        _displayValue      = Mathf.Lerp(_displayValue, Mathf.Clamp01(ratio), lerpSpeed * Time.deltaTime);
+        healthSlider.value = _displayValue;
 
-        // Color segun porcentaje de vida
-        if (ratio > 0.6f)
-            fillImage.color = colorAlto;
-        else if (ratio > 0.3f)
-            fillImage.color = colorMedio;
-        else
-            fillImage.color = colorBajo;
+        // Color segun vida REAL (cambia en el momento correcto, no con el retraso del lerp)
+        if (fillImage != null)
+        {
+            if (ratio > 0.6f)
+                fillImage.color = colorAlto;
+            else if (ratio > 0.3f)
+                fillImage.color = colorMedio;
+            else
+                fillImage.color = colorBajo;
+        }
     }
 }

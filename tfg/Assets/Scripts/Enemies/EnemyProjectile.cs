@@ -34,15 +34,21 @@ public class EnemyProjectile : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Enemy")) return; // ignorar otros enemigos
+        if (other.GetComponentInParent<EnemyBase>() != null) return; // ignorar otros enemigos
 
-        PlayerHealth ph = other.GetComponent<PlayerHealth>();
+        // Buscar PlayerHealth en el objeto golpeado o en su raíz (por si el collider está en un hijo)
+        PlayerHealth ph = other.GetComponent<PlayerHealth>()
+                       ?? other.GetComponentInParent<PlayerHealth>();
         if (ph != null)
         {
             ph.TakeDamage(damage);
 
             if (slowAmount > 0f)
-                ph.StartCoroutine(ApplySlow(other.GetComponent<PlayerController>()));
+            {
+                PlayerController pc = other.GetComponent<PlayerController>()
+                                   ?? other.GetComponentInParent<PlayerController>();
+                ph.StartCoroutine(ApplySlow(pc));
+            }
         }
 
         Destroy(gameObject);

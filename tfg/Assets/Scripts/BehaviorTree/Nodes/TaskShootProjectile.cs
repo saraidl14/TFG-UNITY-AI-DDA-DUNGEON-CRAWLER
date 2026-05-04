@@ -8,18 +8,20 @@ using BehaviorTree;
 /// </summary>
 public class TaskShootProjectile : Node
 {
-    private readonly Transform  _self;
-    private readonly GameObject _projectilePrefab;
-    private readonly float      _damage;
-    private readonly float      _speed;
-    private readonly float      _cooldown;
-    private readonly float      _maxRange;
+    private readonly Transform      _self;
+    private readonly GameObject     _projectilePrefab;
+    private readonly float          _damage;
+    private readonly float          _speed;
+    private readonly float          _cooldown;
+    private readonly float          _maxRange;
+    private readonly System.Action  _onShoot;   // callback → animación en el controlador
 
     private float _lastShootTime = -999f;
 
     public TaskShootProjectile(Transform self, GameObject prefab,
                                float damage, float speed,
-                               float cooldown, float maxRange)
+                               float cooldown, float maxRange,
+                               System.Action onShoot = null)
     {
         _self             = self;
         _projectilePrefab = prefab;
@@ -27,6 +29,7 @@ public class TaskShootProjectile : Node
         _speed            = speed;
         _cooldown         = cooldown;
         _maxRange         = maxRange;
+        _onShoot          = onShoot;
     }
 
     public override NodeState Evaluate()
@@ -40,8 +43,8 @@ public class TaskShootProjectile : Node
         // Fuera de rango de disparo
         if (dist > _maxRange) { state = NodeState.FAILURE; return state; }
 
-        // Cooldown
-        if (Time.time < _lastShootTime + _cooldown) { state = NodeState.RUNNING; return state; }
+        // Cooldown: FAILURE para que el Selector pruebe chase/flee mientras espera
+        if (Time.time < _lastShootTime + _cooldown) { state = NodeState.FAILURE; return state; }
 
         if (_projectilePrefab == null) { state = NodeState.FAILURE; return state; }
 
@@ -61,6 +64,7 @@ public class TaskShootProjectile : Node
         }
 
         _lastShootTime = Time.time;
+        _onShoot?.Invoke();
         Debug.Log($"[TaskShootProjectile] {_self.name} dispara proyectil. Daño: {_damage}");
 
         state = NodeState.SUCCESS;

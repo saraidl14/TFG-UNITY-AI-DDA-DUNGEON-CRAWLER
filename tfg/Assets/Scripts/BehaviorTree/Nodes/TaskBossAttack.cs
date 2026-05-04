@@ -8,20 +8,23 @@ using BehaviorTree;
 /// </summary>
 public class TaskBossAttack : Node
 {
-    private readonly float _damage;
-    private readonly float _cooldown;
-    private readonly bool  _isEnraged;   // Solo para log / efectos
+    private readonly float         _damage;
+    private readonly float         _cooldown;
+    private readonly bool          _isEnraged;
+    private readonly System.Action _onAttack;  // callback → animación en BossController
 
     private float _lastAttackTime = -999f;
 
-    /// <param name="damage">Dano del ataque.</param>
+    /// <param name="damage">Daño del ataque.</param>
     /// <param name="cooldown">Tiempo entre ataques en segundos.</param>
-    /// <param name="isEnraged">True si es el ataque de la fase enfurecida.</param>
-    public TaskBossAttack(float damage, float cooldown, bool isEnraged = false)
+    /// <param name="isEnraged">True si es la fase enfurecida.</param>
+    /// <param name="onAttack">Callback opcional: se invoca al impactar (para triggear animación).</param>
+    public TaskBossAttack(float damage, float cooldown, bool isEnraged = false, System.Action onAttack = null)
     {
         _damage    = damage;
         _cooldown  = cooldown;
         _isEnraged = isEnraged;
+        _onAttack  = onAttack;
     }
 
     public override NodeState Evaluate()
@@ -40,16 +43,27 @@ public class TaskBossAttack : Node
             return state;
         }
 
-        Transform player      = (Transform)playerObj;
-        PlayerHealth ph       = player.GetComponent<PlayerHealth>();
+        Transform player = (Transform)playerObj;
+        PlayerHealth ph  = player.GetComponent<PlayerHealth>();
+
+        if (ph == null)
+        {
+            ph = player.GetComponentInParent<PlayerHealth>();
+            if (ph == null) ph = player.GetComponentInChildren<PlayerHealth>();
+        }
 
         if (ph != null)
         {
             ph.TakeDamage(_damage);
             _lastAttackTime = Time.time;
+            _onAttack?.Invoke();   // notifica al BossController para que elija la animación
 
             string fase = _isEnraged ? "FURY" : "normal";
-            Debug.Log($"[TaskBossAttack] [{fase}] Dano: {_damage}");
+            Debug.Log($"[TaskBossAttack] [{fase}] Daño: {_damage}");
+        }
+        else
+        {
+            Debug.LogWarning("[TaskBossAttack] PlayerHealth no encontrado en el jugador.");
         }
 
         state = NodeState.SUCCESS;

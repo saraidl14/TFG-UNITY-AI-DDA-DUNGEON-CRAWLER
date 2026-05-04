@@ -226,21 +226,41 @@ public class ItemDetailPanel : MonoBehaviour
                     SetStat(statLine2, "Efecto", "Recupera salud");
                     SetStat(statLine3, "", "");
                 }
+                if (useBtn      != null) useBtn.gameObject.SetActive(true);
                 if (useBtnLabel != null) useBtnLabel.text = "Usar poción";
+                break;
+            case ItemType.Ammo:
+                // Calcular total de flechas en todos los slots
+                int totalAmmo = 0;
+                if (Inventory.Instance != null)
+                    for (int i = Inventory.WEAPON_SLOTS; i < Inventory.TOTAL_SLOTS; i++)
+                    {
+                        Inventory.Slot s = Inventory.Instance.GetSlot(i);
+                        if (!s.IsEmpty && s.item != null && s.item.itemType == ItemType.Ammo)
+                            totalAmmo += s.quantity;
+                    }
+                SetStat(statLine2, "En este slot", $"{qty}");
+                SetStat(statLine3, "Total flechas", $"{totalAmmo}");
+                // Las flechas no se "usan" manualmente — se oculta el botón
+                if (useBtn      != null) useBtn.gameObject.SetActive(false);
+                if (useBtnLabel != null) useBtnLabel.text = "";
                 break;
             case ItemType.ManaShield:
                 SetStat(statLine2, "Efecto", "Escudo de maná");
                 SetStat(statLine3, "", "");
+                if (useBtn      != null) useBtn.gameObject.SetActive(true);
                 if (useBtnLabel != null) useBtnLabel.text = "Activar escudo";
                 break;
             case ItemType.StaminaShield:
                 SetStat(statLine2, "Efecto", "Escudo de stamina");
                 SetStat(statLine3, "", "");
+                if (useBtn      != null) useBtn.gameObject.SetActive(true);
                 if (useBtnLabel != null) useBtnLabel.text = "Activar escudo";
                 break;
             default:
                 SetStat(statLine2, "", "");
                 SetStat(statLine3, "", "");
+                if (useBtn      != null) useBtn.gameObject.SetActive(true);
                 if (useBtnLabel != null) useBtnLabel.text = "Usar";
                 break;
         }
