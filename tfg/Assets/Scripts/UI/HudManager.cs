@@ -46,6 +46,17 @@ public class HudManager : MonoBehaviour
     public TMP_Text mazmorraText;
 
     // ─────────────────────────────────────────────
+    // FLECHAS
+    // ─────────────────────────────────────────────
+
+    [Header("Flechas")]
+    [Tooltip("TMP que muestra el total de flechas en inventario. Opcional.")]
+    public TMP_Text flechasText;
+
+    [Tooltip("Icono/imagen del contenedor de flechas (se oculta si no hay arco equipado o no hay flechas).")]
+    public GameObject flechasRoot;
+
+    // ─────────────────────────────────────────────
     // ESTADO INTERNO
     // ─────────────────────────────────────────────
 
@@ -72,6 +83,7 @@ public class HudManager : MonoBehaviour
         UpdateScore();
         UpdateMonedas();
         UpdateMazmorra();
+        UpdateFlechas();
     }
 
     // ─────────────────────────────────────────────
@@ -124,6 +136,24 @@ public class HudManager : MonoBehaviour
         if (gm == null) return;
 
         mazmorraText.text = $"Mazmorra {gm.DungeonNumber}";
+    }
+
+    private void UpdateFlechas()
+    {
+        if (flechasText == null && flechasRoot == null) return;
+        if (Inventory.Instance == null) return;
+
+        // Sumar flechas de TODOS los slots de munición
+        int total = 0;
+        for (int i = Inventory.WEAPON_SLOTS; i < Inventory.TOTAL_SLOTS; i++)
+        {
+            Inventory.Slot slot = Inventory.Instance.GetSlot(i);
+            if (!slot.IsEmpty && slot.item.itemType == ItemType.Ammo)
+                total += slot.quantity;
+        }
+
+        if (flechasText  != null) flechasText.text = $"🏹 {total}";
+        if (flechasRoot  != null) flechasRoot.SetActive(total > 0);
     }
 
     // ─────────────────────────────────────────────
