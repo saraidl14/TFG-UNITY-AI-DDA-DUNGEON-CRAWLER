@@ -4,6 +4,12 @@ using UnityEngine;
 /// Gestor central del sistema DDA (Dynamic Difficulty Adjustment).
 /// Implementa las 6 reglas DDA v2.0 con umbrales multiples y modificadores de contexto.
 ///
+/// v3.0 - DDA bandado: el jugador elige dificultad inicial y el sistema solo puede
+///         moverse +-2 niveles respecto a su eleccion.
+///         Mecanica compensatoria: si el nivel llega al minimo de banda y el jugador
+///         sigue teniendo dificultades durante 2+ salas, se activa ShouldBoostLoot
+///         para que los cofres suelten loot premium.
+///
 /// Flujo de uso:
 ///   1. Al terminar cada sala llamar a EvaluateDifficulty()
 ///   2. Lee MetricsTracker, calcula el score DDA ponderado
@@ -38,7 +44,7 @@ public class DifficultyManager : MonoBehaviour
 
     [Header("Dificultad")]
     [Range(1, 10)]
-    public int currentLevel = 1;
+    public int currentLevel = 5;
 
     public const int MIN_LEVEL = 1;
     public const int MAX_LEVEL = 10;
@@ -48,6 +54,37 @@ public class DifficultyManager : MonoBehaviour
 
     /// <summary>Ultimo ajuste aplicado. Positivo = subio, negativo = bajo, 0 = mantuvo.</summary>
     public int LastAdjustment => _lastAdjustment;
+
+    // ─────────────────────────────────────────────
+    // BANDA DE DIFICULTAD (v3.0)
+    // ─────────────────────────────────────────────
+
+    [Header("Banda de dificultad (se fija al elegir dificultad)")]
+    [Tooltip("Nivel minimo que el DDA puede alcanzar (elegido - 2).")]
+    public int minDifficulty = MIN_LEVEL;
+
+    [Tooltip("Nivel maximo que el DDA puede alcanzar (elegido + 2).")]
+    public int maxDifficulty = MAX_LEVEL;
+
+    // ─────────────────────────────────────────────
+    // MECANICA COMPENSATORIA (v3.0)
+    // ─────────────────────────────────────────────
+
+    /// <summary>
+    /// Salas consecutivas en que el nivel esta en el minimo de banda
+    /// y el jugador sigue teniendo un score DDA negativo (< -8).
+    /// Al llegar a 2, se activa ShouldBoostLoot.
+    /// </summary>
+    private int _struggleStreak = 0;
+
+    /// <summary>Score DDA de la sala mas reciente (guardado en EvaluateDifficulty).</summary>
+    private float _lastDDAScore = 0f;
+
+    /// <summary>
+    /// Cuando es true, LootTable.Roll() usara la tabla premium en lugar de la normal.
+    /// Se activa si el jugador lleva 2+ salas en el nivel minimo de banda con score negativo.
+    /// </summary>
+    public bool ShouldBoostLoot { get; private set; } = false;
 
     // ─────────────────────────────────────────────
     // TABLAS DE SCALING (doc Game_Balance_10_Difficulty_Levels)
@@ -83,6 +120,38 @@ public class DifficultyManager : MonoBehaviour
     private const float W_ITEMS      = 0.10f;
 
     // ─────────────────────────────────────────────
+    // CONFIGURAR DIFICULTAD INICIAL (v3.0)
+    // ─────────────────────────────────────────────
+
+    /// <summary>
+    /// Llamado desde MainMenu al elegir dificultad.
+    /// Fija el nivel inicial y calcula la banda +-2 (clampeada a [1, 10]).
+    ///
+    /// Tabla de bandas:
+    ///   Facil      (2) → banda [1,  4]
+    ///   Normal     (5) → banda [3,  7]
+    ///   Dificil    (7) → banda [5, 10]
+    ///   Muy Dificil(10)→ banda [8, 10]
+    /// </summary>
+    public void SetStartingDifficulty(int chosen)
+    {
+        currentLevel  = Mathf.Clamp(chosen, MIN_LEVEL, MAX_LEVEL);
+        minDifficulty = Mathf.Max(MIN_LEVEL, currentLevel - 2);
+        maxDifficulty = Mathf.Min(MAX_LEVEL, currentLevel + 2);
+
+        // Reiniciar mecanica compensatoria
+        _struggleStreak = 0;
+        ShouldBoostLoot = false;
+        _lastDDAScore   = 0f;
+
+        Debug.Log($"[DifficultyManager] Dificultad elegida: {currentLevel} | Banda: [{minDifficulty}, {maxDifficulty}]");
+
+        // Propagar al GameManager si ya existe
+        if (GameManager.Instance != null)
+            GameManager.Instance.CurrentDifficultyLevel = currentLevel;
+    }
+
+    // ─────────────────────────────────────────────
     // EVALUACION PRINCIPAL
     // ─────────────────────────────────────────────
 
@@ -108,8 +177,11 @@ public class DifficultyManager : MonoBehaviour
         totalScore += EvaluatePerfectStreakRule(mt.PerfectStreak);
         totalScore += EvaluateItemUsageRule(mt.ItemsUsed);
 
+        // Guardar el score para la mecanica compensatoria
+        _lastDDAScore = totalScore;
+
         Debug.Log($"[DifficultyManager] Score DDA: {totalScore:F2} " +
-                  $"(daño={mt.DamageTaken} tiempo={mt.TimeTaken:F1}s " +
+                  $"(dano={mt.DamageTaken} tiempo={mt.TimeTaken:F1}s " +
                   $"HP={mt.HpRemaining} muertes={mt.DeathCount} " +
                   $"streak={mt.PerfectStreak} items={mt.ItemsUsed})");
 
@@ -124,44 +196,44 @@ public class DifficultyManager : MonoBehaviour
 
     /// <summary>
     /// Regla 1 — PlayerDamageRule
-    /// Solo bonifica si no recibiste daño. Sin castigo: el HP restante ya refleja el daño recibido.
+    /// Solo bonifica si no recibiste dano. Sin castigo: el HP restante ya refleja el dano recibido.
     /// </summary>
     private float EvaluatePlayerDamageRule(float damageTaken)
     {
         float maxHP = 100f;
-        if (damageTaken <= 0f)          return 15f;  // Sin daño: excelente
-        if (damageTaken < maxHP * 0.2f) return  5f;  // Daño leve
-        return 0f;                                    // Daño alto: neutro (el HP restante ya penaliza)
+        if (damageTaken <= 0f)          return 15f;  // Sin dano: excelente
+        if (damageTaken < maxHP * 0.2f) return  5f;  // Dano leve
+        return 0f;                                    // Dano alto: neutro (el HP restante ya penaliza)
     }
 
     /// <summary>
     /// Regla 2 — EnemyKillSpeedRule
-    /// Ganar rápido es el principal indicador de que el jugador domina el nivel.
+    /// Ganar rapido es el principal indicador de que el jugador domina el nivel.
     /// </summary>
     private float EvaluateKillSpeedRule(float timeTaken)
     {
-        if (timeTaken < 20f)  return 18f;  // Muy rápido: domina
-        if (timeTaken < 40f)  return 12f;  // Rápido: bien
+        if (timeTaken < 20f)  return 18f;  // Muy rapido: domina
+        if (timeTaken < 40f)  return 12f;  // Rapido: bien
         if (timeTaken < 60f)  return 10f;  // Menos de 1 min: garantiza +1 aunque HP sea baja
         if (timeTaken <= 90f) return  3f;  // Normal: ligero positivo
-        if (timeTaken > 120f) return -5f;  // Muy lento: costó mucho
+        if (timeTaken > 120f) return -5f;  // Muy lento: costo mucho
         return 0f;
     }
 
     /// <summary>
     /// Regla 3 — HealthRemainingRule
-    /// Bonifica HP alta, penaliza ligeramente HP crítica.
+    /// Bonifica HP alta, penaliza ligeramente HP critica.
     /// </summary>
     private float EvaluateHealthRemainingRule(float hpRemaining)
     {
         if (hpRemaining >= 100f) return 10f;  // HP llena
         if (hpRemaining >= 70f)  return  5f;  // HP alta
         if (hpRemaining > 10f)   return  0f;  // HP media/baja: neutro
-        return -8f;                            // HP crítica (≤ 10): casi muerto
+        return -8f;                            // HP critica (<=10): casi muerto
     }
 
     /// <summary>
-    /// Regla 4 — DeathCountRule — señal más importante de dificultad excesiva.
+    /// Regla 4 — DeathCountRule — senal mas importante de dificultad excesiva.
     /// </summary>
     private float EvaluateDeathCountRule(int deaths)
     {
@@ -197,12 +269,12 @@ public class DifficultyManager : MonoBehaviour
     /// </summary>
     private int CalculateAdjustment(float score)
     {
-        if      (score >= 35f)  return  3;  // DOMINANDO  (sin daño + muy rápido)
-        else if (score >= 15f)  return  2;  // EXCELENTE  (rápido aunque haya recibido daño)
-        else if (score >= 1f)   return  1;  // BIEN       (ganó sin morir, cualquier ritmo)
+        if      (score >= 35f)  return  3;  // DOMINANDO  (sin dano + muy rapido)
+        else if (score >= 15f)  return  2;  // EXCELENTE  (rapido aunque haya recibido dano)
+        else if (score >= 1f)   return  1;  // BIEN       (gano sin morir, cualquier ritmo)
         else if (score >= -8f)  return  0;  // EQUILIBRADO
-        else if (score >= -18f) return -1;  // COSTÓ
-        else if (score >= -30f) return -2;  // MUY DIFÍCIL
+        else if (score >= -18f) return -1;  // COSTO
+        else if (score >= -30f) return -2;  // MUY DIFICIL
         else                    return -3;  // IMPOSIBLE
     }
 
@@ -236,11 +308,11 @@ public class DifficultyManager : MonoBehaviour
             Debug.Log("[DDA] Mod: Nivel>=8 → subida limitada a +1");
         }
 
-        // 4. Cooldown (ajuste grande hace <2 salas) → reducir a ±1
+        // 4. Cooldown (ajuste grande hace <2 salas) → reducir a +-1
         if (Mathf.Abs(_lastAdjustment) >= 2 && _roomsSinceLastAdjustment < 2 && Mathf.Abs(adj) > 1)
         {
             adj = (adj > 0) ? 1 : -1;
-            Debug.Log("[DDA] Mod: Cooldown activo → ajuste reducido a ±1");
+            Debug.Log("[DDA] Mod: Cooldown activo → ajuste reducido a +-1");
         }
 
         _roomsSinceLastAdjustment++;
@@ -253,12 +325,13 @@ public class DifficultyManager : MonoBehaviour
 
     private void ApplyAdjustment(int adjustment)
     {
-        int prev    = currentLevel;
-        currentLevel = Mathf.Clamp(currentLevel + adjustment, MIN_LEVEL, MAX_LEVEL);
+        int prev     = currentLevel;
+        // v3.0: clampear a la BANDA elegida, no al rango global
+        currentLevel = Mathf.Clamp(currentLevel + adjustment, minDifficulty, maxDifficulty);
 
         if (currentLevel != prev)
         {
-            Debug.Log($"[DifficultyManager] Nivel: {prev} → {currentLevel} ({adjustment:+0;-0})");
+            Debug.Log($"[DifficultyManager] Nivel: {prev} → {currentLevel} ({adjustment:+0;-0}) | Banda: [{minDifficulty}, {maxDifficulty}]");
 
             if (GameManager.Instance != null)
                 GameManager.Instance.CurrentDifficultyLevel = currentLevel;
@@ -271,7 +344,29 @@ public class DifficultyManager : MonoBehaviour
         }
         else
         {
-            Debug.Log($"[DifficultyManager] Nivel mantenido en {currentLevel}.");
+            Debug.Log($"[DifficultyManager] Nivel mantenido en {currentLevel} (banda [{minDifficulty}, {maxDifficulty}]).");
+        }
+
+        // ─── Mecanica compensatoria (v3.0) ───────────────────────────────────
+        // Si ya estamos en el minimo de banda Y el score sigue siendo muy negativo:
+        // acumular racha de dificultad → tras 2 salas activar loot premium.
+        if (currentLevel <= minDifficulty && _lastDDAScore < -8f)
+        {
+            _struggleStreak++;
+            ShouldBoostLoot = _struggleStreak >= 2;
+
+            if (ShouldBoostLoot)
+                Debug.Log($"[DDA] BoostLoot ACTIVADO (racha={_struggleStreak} salas, score={_lastDDAScore:F1})");
+            else
+                Debug.Log($"[DDA] Racha de dificultad: {_struggleStreak}/2 salas en minimo de banda.");
+        }
+        else
+        {
+            if (_struggleStreak > 0 || ShouldBoostLoot)
+                Debug.Log("[DDA] Racha de dificultad reiniciada. BoostLoot desactivado.");
+
+            _struggleStreak = 0;
+            ShouldBoostLoot = false;
         }
     }
 
