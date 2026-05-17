@@ -14,9 +14,10 @@ public class Arrow : MonoBehaviour
     // ─────────────────────────────────────────────
     // PARÁMETROS (asignados por PlayerCombat al disparar)
     // ─────────────────────────────────────────────
-    [HideInInspector] public float damage      = 10f;
-    [HideInInspector] public float speed       = 15f;
-    [HideInInspector] public float maxLifetime = 5f;   // segundos antes de auto-destruirse
+    [HideInInspector] public float damage        = 10f;
+    [HideInInspector] public float speed         = 15f;
+    [HideInInspector] public float maxLifetime   = 5f;   // segundos antes de auto-destruirse
+    [HideInInspector] public float knockbackForce = 4f;  // fuerza de retroceso al impactar
 
     private float _spawnTime;
 
@@ -48,6 +49,11 @@ public class Arrow : MonoBehaviour
         if (enemy != null)
         {
             enemy.TakeDamage(damage);
+
+            // Knockback en la direccion de vuelo de la flecha
+            if (knockbackForce > 0f)
+                enemy.Knockback(transform.forward, knockbackForce);
+
             Debug.Log($"[Arrow] Impacto en {other.name} | Daño: {damage}");
         }
 

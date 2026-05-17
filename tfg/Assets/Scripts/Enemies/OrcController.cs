@@ -84,7 +84,8 @@ public class OrcController : EnemyBase
             new TaskChasePlayer(transform, moveSpeed, maxRoamDistance, spawnPosition)
         });
 
-        _btRoot = new Selector(new List<Node> { attackSequence, chaseSequence });
+        var patrolNode = new TaskPatrol(transform, moveSpeed, maxRoamDistance, spawnPosition, waitTime: 3f);
+        _btRoot = new Selector(new List<Node> { attackSequence, chaseSequence, patrolNode });
 
         if (player != null)
             _btRoot.SetData("player", player);

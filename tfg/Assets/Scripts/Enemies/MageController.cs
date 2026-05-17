@@ -8,21 +8,30 @@ using BehaviorTree;
 ///
 /// BT:
 ///   Selector
-///   ├─ Sequence (huir si el jugador esta muy cerca)
+///   ├─ Sequence (ataque en área si el jugador está muy cerca)
+///   │   ├─ CheckPlayerDetected
+///   │   └─ TaskAreaAttack
+///   ├─ Sequence (huir si el jugador está demasiado cerca)
 ///   │   ├─ CheckPlayerDetected
 ///   │   ├─ CheckPlayerTooClose
 ///   │   └─ TaskFleeFromPlayer
-///   ├─ Sequence (disparar si el jugador esta en rango)
+///   ├─ Sequence (disparar si el jugador está en rango)
 ///   │   ├─ CheckPlayerDetected
-///   │   └─ TaskShootProjectile (bola de fuego)
-///   └─ Sequence (perseguir si esta demasiado lejos para disparar)
-///       ├─ CheckPlayerDetected
-///       └─ TaskChasePlayer
+///   │   └─ TaskShootProjectile
+///   ├─ Sequence (perseguir si está demasiado lejos)
+///   │   ├─ CheckPlayerDetected
+///   │   └─ TaskChasePlayer
+///   └─ TaskPatrol (fallback)
 ///
 /// Animaciones (parámetros Animator):
-///   Speed (float)   → 0 = Idle, 1 = moviéndose
-///   Cast  (trigger) → lanza hechizo
-///   Die   (trigger) → muerte
+///   Speed      (float)   → 0 = Idle, 1 = moviéndose
+///   Attack     (trigger) → lanza hechizo
+///   AtaqueArea (trigger) → ataque en área
+///   Death      (trigger) → muerte
+///
+/// NOTA: La rotación la gestiona el NavMeshAgent directamente (updateRotation = true),
+/// igual que el OrcController. Si el modelo da la espalda, selecciona el hijo del mesh
+/// en el Inspector y ponle Rotation Y = 180.
 /// </summary>
 public class MageController : EnemyBase
 {
@@ -64,10 +73,10 @@ public class MageController : EnemyBase
     // ─────────────────────────────────────────────
 
     private Animator _animator;
-    private static readonly int HashSpeed      = Animator.StringToHash("Speed");
-    private static readonly int HashAttack     = Animator.StringToHash("Attack");
+    private static readonly int HashSpeed = Animator.StringToHash("Speed");
+    private static readonly int HashAttack = Animator.StringToHash("Attack");
     private static readonly int HashAtaqueArea = Animator.StringToHash("AtaqueArea");
-    private static readonly int HashDeath      = Animator.StringToHash("Death");
+    private static readonly int HashDeath = Animator.StringToHash("Death");
 
     // ─────────────────────────────────────────────
     // BT
@@ -82,15 +91,15 @@ public class MageController : EnemyBase
     protected override void Awake()
     {
         base.Awake();
-        maxHealth       = 40f;
-        damage          = 12f;
-        moveSpeed       = 2.5f;
-        attackRange     = castRange;
-        attackCooldown  = castCooldown;
-        detectionRange  = 12f;
+        maxHealth = 40f;
+        damage = 12f;
+        moveSpeed = 2.5f;
+        attackRange = castRange;
+        attackCooldown = castCooldown;
+        detectionRange = 12f;
         maxRoamDistance = 14f;
-        coinReward      = 25;
-        currentHealth   = maxHealth;
+        coinReward = 25;
+        currentHealth = maxHealth;
 
         _animator = GetComponent<Animator>();
         if (_animator == null)
@@ -102,11 +111,8 @@ public class MageController : EnemyBase
         base.Start();
         SetupBT();
 
-        // El NavMeshAgent mueve pero NO rota: TaskShootProjectile y TaskFleeFromPlayer
-        // ya hacen LookAt al jugador, y el agente interferiría con esa rotación.
-        var agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
-        if (agent != null)
-            agent.updateRotation = false;
+        // La rotación la gestiona el NavMeshAgent (updateRotation = true por defecto),
+        // igual que el OrcController. No se toca updateRotation aquí.
     }
 
     // ─────────────────────────────────────────────
@@ -145,7 +151,10 @@ public class MageController : EnemyBase
             new TaskChasePlayer(transform, moveSpeed, maxRoamDistance, spawnPosition)
         });
 
-        _btRoot = new Selector(new List<Node> { areaSequence, fleeSequence, shootSequence, chaseSequence });
+        // Prioridad 5 (fallback): patrullar cuando no detecta al jugador
+        var patrolNode = new TaskPatrol(transform, moveSpeed, maxRoamDistance, spawnPosition, waitTime: 2f);
+
+        _btRoot = new Selector(new List<Node> { areaSequence, fleeSequence, shootSequence, chaseSequence, patrolNode });
 
         if (player != null)
             _btRoot.SetData("player", player);
@@ -159,20 +168,10 @@ public class MageController : EnemyBase
     {
         if (player != null) _btRoot?.SetData("player", player);
         _btRoot?.Evaluate();
-        FacePlayer();
         UpdateAnimationSpeed();
     }
 
-    private void FacePlayer()
-    {
-        if (player == null) return;
-        Vector3 dir = player.position - transform.position;
-        dir.y = 0f;
-        if (dir.sqrMagnitude > 0.01f)
-            transform.rotation = Quaternion.Slerp(transform.rotation,
-                Quaternion.LookRotation(-dir), Time.deltaTime * 10f);
-    }
-
+    // Attack() no se usa: lo gestionan las Tasks del BT vía callbacks
     protected override void Attack() { }
 
     // ─────────────────────────────────────────────
@@ -211,11 +210,11 @@ public class MageController : EnemyBase
 
     private void UpdateAnimationSpeed()
     {
-        if (_animator == null || player == null) return;
+        if (_animator == null) return;
 
-        float dist   = Vector3.Distance(transform.position, player.position);
-        bool moving  = dist > fleeRange && dist <= detectionRange;
-        _animator.SetFloat(HashSpeed, moving ? 1f : 0f);
+        var agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
+        float speed = (agent != null) ? agent.velocity.magnitude : 0f;
+        _animator.SetFloat(HashSpeed, speed > 0.1f ? 1f : 0f);
     }
 
     // ─────────────────────────────────────────────
@@ -229,7 +228,6 @@ public class MageController : EnemyBase
         if (_animator != null)
             _animator.SetTrigger(HashDeath);
 
-        // StartCoroutine ANTES de enabled=false (no arranca en componentes desactivados)
         StartCoroutine(DestroyAfterDelay(2f));
         enabled = false;
     }
@@ -253,11 +251,11 @@ public class MageController : EnemyBase
     public void ApplyDifficultyScaling(float hpMult, float dmgMult, float spdMult,
                                        float areaDmgMult = 1f)
     {
-        maxHealth            = 40f  * hpMult;
-        currentHealth        = maxHealth;
-        damage               = 12f  * dmgMult;
-        moveSpeed            = 2.5f * spdMult;
-        areaDamagePerSecond  = Mathf.Clamp(2f * areaDmgMult, 2f, 10f);
+        maxHealth = 40f * hpMult;
+        currentHealth = maxHealth;
+        damage = 12f * dmgMult;
+        moveSpeed = 2.5f * spdMult;
+        areaDamagePerSecond = Mathf.Clamp(2f * areaDmgMult, 2f, 10f);
         SetupBT();
     }
 }

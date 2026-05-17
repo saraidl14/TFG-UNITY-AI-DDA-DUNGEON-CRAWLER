@@ -1263,7 +1263,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 15.194146, y: 1.6824875, z: -2.9121504}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1, y: 1.5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5537906076425454882}
@@ -1359,7 +1359,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5206aafd416c58347957791438758c84, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 5
+  moveSpeed: 10
   jumpHeight: 1.5
   gravity: -9.81
   groundCheck: {fileID: 4315645215713044996}
@@ -1392,6 +1392,8 @@ MonoBehaviour:
   dashDuration: 0.15
   dashCooldownMin: 1
   dashCooldownMax: 2
+  _isInvincible: 0
+  _defenseBuff: 0
 --- !u!114 &9020037731205417025
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1411,6 +1413,10 @@ MonoBehaviour:
   heavyAttackRange: 2
   heavyAttackCooldown: 1
   heavyAttackStaminaCost: 30
+  knockbackForce: 5
+  aimFOV: 40
+  normalFOV: 60
+  aimFOVSpeed: 10
   dashInputCooldown: 2
   enemyLayer:
     serializedVersion: 2

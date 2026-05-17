@@ -43,6 +43,26 @@ public class PlayerCombat : MonoBehaviour
     private float lastHeavyAttackTime = -999f;
 
     // ─────────────────────────────────────────────
+    // KNOCKBACK
+    // ─────────────────────────────────────────────
+    [Header("Knockback al golpear")]
+    [Tooltip("Fuerza del empuje que recibe el enemigo al ser golpeado.")]
+    public float knockbackForce = 5f;
+
+    // ─────────────────────────────────────────────
+    // ARCO - APUNTADO (RMB)
+    // ─────────────────────────────────────────────
+    [Header("Arco - Apuntado (RMB)")]
+    [Tooltip("FOV de la camara al apuntar con el arco.")]
+    public float aimFOV    = 40f;
+    [Tooltip("FOV normal (sin apuntar).")]
+    public float normalFOV = 60f;
+    [Tooltip("Velocidad de transicion del FOV al apuntar / dejar de apuntar.")]
+    public float aimFOVSpeed = 10f;
+
+    private bool _isAiming = false;
+
+    // ─────────────────────────────────────────────
     // DASH
     // ─────────────────────────────────────────────
     [Header("Dash (Shift)")]
@@ -127,6 +147,7 @@ public class PlayerCombat : MonoBehaviour
         HandleBasicAttack();
         HandleHeavyAttack();
         HandleDash();
+        HandleBowAim();
     }
 
     // ─────────────────────────────────────────────
@@ -162,10 +183,14 @@ public class PlayerCombat : MonoBehaviour
 
     /// <summary>
     /// Ataque pesado con click derecho.
+    /// Solo se activa si NO hay arco equipado (con arco, RMB es apuntar).
     /// Consume 30 de stamina. Dano base 25.
     /// </summary>
     private void HandleHeavyAttack()
     {
+        // Con arco equipado, RMB se reserva para apuntar
+        if (_equippedWeapon is LongRangeWeaponData) return;
+
         if (!Input.GetMouseButtonDown(1)) return;
         if (Time.time < lastHeavyAttackTime + heavyAttackCooldown) return;
 
@@ -223,6 +248,13 @@ public class PlayerCombat : MonoBehaviour
             enemy.TakeDamage(finalDamage);
             float hpAfter = enemy.GetCurrentHealth();
 
+            // Knockback: empujar al enemigo en la direccion del golpe
+            if (knockbackForce > 0f)
+            {
+                Vector3 knockDir = (hit.transform.position - transform.position).normalized;
+                enemy.Knockback(knockDir, knockbackForce);
+            }
+
             Debug.Log($"[PlayerCombat] Dano {finalDamage:F1} a {hit.name} | HP: {hpBefore} -> {hpAfter}");
 
             // Verificar si el enemigo murio (HP llego a 0)
@@ -271,6 +303,41 @@ public class PlayerCombat : MonoBehaviour
     }
 
     // ─────────────────────────────────────────────
+    // APUNTADO CON ARCO (RMB)
+    // ─────────────────────────────────────────────
+
+    /// <summary>
+    /// Gestiona el zoom de camara al apuntar con el arco (RMB mantenido).
+    /// Solo actua cuando hay un arma de largo alcance equipada.
+    /// Muestra/oculta la mirilla a traves de CrosshairUI.
+    /// </summary>
+    private void HandleBowAim()
+    {
+        if (!(_equippedWeapon is LongRangeWeaponData))
+        {
+            // Si no hay arco, restablecer FOV y ocultar mirilla al desequipar
+            if (playerCamera != null && !Mathf.Approximately(playerCamera.fieldOfView, normalFOV))
+                playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, normalFOV, Time.deltaTime * aimFOVSpeed);
+            if (_isAiming)
+            {
+                _isAiming = false;
+                CrosshairUI.Instance?.SetVisible(false);
+            }
+            return;
+        }
+
+        // RMB mantenido = apuntar
+        _isAiming = Input.GetMouseButton(1);
+
+        float targetFOV = _isAiming ? aimFOV : normalFOV;
+        if (playerCamera != null)
+            playerCamera.fieldOfView = Mathf.Lerp(
+                playerCamera.fieldOfView, targetFOV, Time.deltaTime * aimFOVSpeed);
+
+        CrosshairUI.Instance?.SetVisible(_isAiming);
+    }
+
+    // ─────────────────────────────────────────────
     // DISPARO (arco / ballesta)
     // ─────────────────────────────────────────────
 
@@ -299,8 +366,9 @@ public class PlayerCombat : MonoBehaviour
         Arrow arrow = arrowGO.GetComponent<Arrow>();
         if (arrow != null)
         {
-            arrow.damage = bow.GetEffectiveDamage() * (1f + _damageBuff);
-            arrow.speed  = bow.projectileSpeed;
+            arrow.damage         = bow.GetEffectiveDamage() * (1f + _damageBuff);
+            arrow.speed          = bow.projectileSpeed;
+            arrow.knockbackForce = knockbackForce;
         }
 
         // Consumir una flecha del inventario

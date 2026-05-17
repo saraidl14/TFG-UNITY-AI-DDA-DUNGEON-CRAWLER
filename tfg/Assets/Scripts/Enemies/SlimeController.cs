@@ -46,7 +46,7 @@ public class SlimeController : EnemyBase
         maxHealth      = 30f;
         damage         = 5f;
         moveSpeed      = 2f;
-        attackRange    = 1.2f;
+        attackRange    = 1.8f;
         attackCooldown = 1.5f;
         detectionRange = 8f;
         currentHealth  = maxHealth;
@@ -81,10 +81,12 @@ public class SlimeController : EnemyBase
             new TaskChasePlayer(transform, moveSpeed, maxRoamDistance, spawnPosition)
         });
 
+        var patrolNode = new TaskPatrol(transform, moveSpeed, maxRoamDistance, spawnPosition, waitTime: 2.5f);
         _btRoot = new Selector(new List<Node>
         {
             attackSequence,
-            chaseSequence
+            chaseSequence,
+            patrolNode
         });
 
         if (player != null)
@@ -116,6 +118,8 @@ public class SlimeController : EnemyBase
     private void OnAttackAnimation()
     {
         if (_animator == null) return;
+        // No re-disparar si la animacion de ataque ya está en curso
+        if (_animator.GetCurrentAnimatorStateInfo(0).IsTag("Attack")) return;
         _animator.SetTrigger(HashAttack);
     }
 
@@ -147,6 +151,8 @@ public class SlimeController : EnemyBase
         currentHealth = maxHealth;
         damage        = 5f  * damageMultiplier;
         moveSpeed     = 2f  * speedMultiplier;
+        attackRange   = 1.8f;
+        attackCooldown = 0.8f;
         SetupBT();
 
         Debug.Log($"[SlimeController] DDA aplicado | HP:{maxHealth} | DMG:{damage} | SPD:{moveSpeed}");

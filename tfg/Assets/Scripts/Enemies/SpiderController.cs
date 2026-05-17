@@ -85,7 +85,8 @@ public class SpiderController : EnemyBase
             new TaskChasePlayer(transform, moveSpeed, maxRoamDistance, spawnPosition)
         });
 
-        _btRoot = new Selector(new List<Node> { meleeSequence, webSequence, chaseSequence });
+        var patrolNode = new TaskPatrol(transform, moveSpeed, maxRoamDistance, spawnPosition, waitTime: 1.5f);
+        _btRoot = new Selector(new List<Node> { meleeSequence, webSequence, chaseSequence, patrolNode });
 
         if (player != null)
             _btRoot.SetData("player", player);

@@ -36,6 +36,12 @@ public class DifficultyManager : MonoBehaviour
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         DontDestroyOnLoad(gameObject);
+
+        // Leer dificultad elegida en el menu (guardada via PlayerPrefs)
+        // Si no existe la clave, usar 1 (Facil) como valor seguro por defecto
+        int chosen = PlayerPrefs.GetInt("ChosenDifficulty", 1);
+        SetStartingDifficulty(chosen);
+        Debug.Log($"[DifficultyManager] Dificultad inicial cargada desde menu: {chosen}");
     }
 
     // ─────────────────────────────────────────────
@@ -49,7 +55,7 @@ public class DifficultyManager : MonoBehaviour
     public const int MIN_LEVEL = 1;
     public const int MAX_LEVEL = 10;
 
-    private int _roomsSinceLastAdjustment = 0;
+    private int _dungeonsSinceLastAdjustment = 0;
     private int _lastAdjustment           = 0;
 
     /// <summary>Ultimo ajuste aplicado. Positivo = subio, negativo = bajo, 0 = mantuvo.</summary>
@@ -63,7 +69,7 @@ public class DifficultyManager : MonoBehaviour
     [Tooltip("Nivel minimo que el DDA puede alcanzar (elegido - 2).")]
     public int minDifficulty = MIN_LEVEL;
 
-    [Tooltip("Nivel maximo que el DDA puede alcanzar (elegido + 2).")]
+    [Tooltip("Nivel maximo que el DDA puede alcanzar (siempre 10, sin importar la dificultad elegida).")]
     public int maxDifficulty = MAX_LEVEL;
 
     // ─────────────────────────────────────────────
@@ -71,7 +77,7 @@ public class DifficultyManager : MonoBehaviour
     // ─────────────────────────────────────────────
 
     /// <summary>
-    /// Salas consecutivas en que el nivel esta en el minimo de banda
+    /// Mazmorras consecutivas en que el nivel esta en el minimo de banda
     /// y el jugador sigue teniendo un score DDA negativo (< -8).
     /// Al llegar a 2, se activa ShouldBoostLoot.
     /// </summary>
@@ -125,19 +131,21 @@ public class DifficultyManager : MonoBehaviour
 
     /// <summary>
     /// Llamado desde MainMenu al elegir dificultad.
-    /// Fija el nivel inicial y calcula la banda +-2 (clampeada a [1, 10]).
+    /// Fija el nivel inicial y calcula la banda:
+    ///   - Minimo = elegido - 2 (el DDA no puede bajar mas de 2 niveles)
+    ///   - Maximo = siempre 10  (el DDA puede subir hasta el techo si el jugador domina)
     ///
     /// Tabla de bandas:
-    ///   Facil      (2) → banda [1,  4]
-    ///   Normal     (5) → banda [3,  7]
-    ///   Dificil    (7) → banda [5, 10]
-    ///   Muy Dificil(10)→ banda [8, 10]
+    ///   Facil      (2) → banda [1,  10]
+    ///   Normal     (5) → banda [3,  10]
+    ///   Dificil    (7) → banda [5,  10]
+    ///   Muy Dificil(10)→ banda [8,  10]
     /// </summary>
     public void SetStartingDifficulty(int chosen)
     {
         currentLevel  = Mathf.Clamp(chosen, MIN_LEVEL, MAX_LEVEL);
         minDifficulty = Mathf.Max(MIN_LEVEL, currentLevel - 2);
-        maxDifficulty = Mathf.Min(MAX_LEVEL, currentLevel + 2);
+        maxDifficulty = MAX_LEVEL; // El techo siempre es 10, sin importar la dificultad elegida
 
         // Reiniciar mecanica compensatoria
         _struggleStreak = 0;
@@ -308,14 +316,14 @@ public class DifficultyManager : MonoBehaviour
             Debug.Log("[DDA] Mod: Nivel>=8 → subida limitada a +1");
         }
 
-        // 4. Cooldown (ajuste grande hace <2 salas) → reducir a +-1
-        if (Mathf.Abs(_lastAdjustment) >= 2 && _roomsSinceLastAdjustment < 2 && Mathf.Abs(adj) > 1)
+        // 4. Cooldown (ajuste grande hace <2 mazmorras) → reducir a +-1
+        if (Mathf.Abs(_lastAdjustment) >= 2 && _dungeonsSinceLastAdjustment < 2 && Mathf.Abs(adj) > 1)
         {
             adj = (adj > 0) ? 1 : -1;
             Debug.Log("[DDA] Mod: Cooldown activo → ajuste reducido a +-1");
         }
 
-        _roomsSinceLastAdjustment++;
+        _dungeonsSinceLastAdjustment++;
         return adj;
     }
 
@@ -356,9 +364,9 @@ public class DifficultyManager : MonoBehaviour
             ShouldBoostLoot = _struggleStreak >= 2;
 
             if (ShouldBoostLoot)
-                Debug.Log($"[DDA] BoostLoot ACTIVADO (racha={_struggleStreak} salas, score={_lastDDAScore:F1})");
+                Debug.Log($"[DDA] BoostLoot ACTIVADO (racha={_struggleStreak} mazmorras, score={_lastDDAScore:F1})");
             else
-                Debug.Log($"[DDA] Racha de dificultad: {_struggleStreak}/2 salas en minimo de banda.");
+                Debug.Log($"[DDA] Racha de dificultad: {_struggleStreak}/2 mazmorras en minimo de banda.");
         }
         else
         {
@@ -371,6 +379,37 @@ public class DifficultyManager : MonoBehaviour
     }
 
     // ─────────────────────────────────────────────
+    // EVALUACION + AJUSTE INMEDIATO (usado en Game Over → Retry)
+    // ─────────────────────────────────────────────
+
+    /// <summary>
+    /// Evalua las metricas actuales y aplica el ajuste de dificultad de forma inmediata,
+    /// sin pasar por el BT-DDA. Usar en Game Over antes de recargar la escena,
+    /// para que el retry empiece ya con la dificultad corregida.
+    /// </summary>
+    public void EvaluateAndApplyImmediate()
+    {
+        if (MetricsTracker.Instance == null)
+        {
+            Debug.LogWarning("[DifficultyManager] EvaluateAndApplyImmediate: MetricsTracker no encontrado.");
+            return;
+        }
+
+        // 1. Calcular score con las metricas actuales (incluye la muerte)
+        EvaluateDifficulty();
+
+        // 2. Calcular ajuste base
+        float score  = MetricsTracker.Instance.LastDDAScore;
+        int baseAdj  = CalculateAdjustment(score);
+        int finalAdj = ApplyContextModifiers(baseAdj, MetricsTracker.Instance);
+
+        // 3. Aplicar (respeta la banda elegida)
+        AdjustLevel(finalAdj);
+
+        Debug.Log($"[DifficultyManager] Retry: score={score:F1} ajuste={finalAdj:+0;-0} → nivel={currentLevel}");
+    }
+
+    // ─────────────────────────────────────────────
     // AJUSTE MANUAL (usado por nodos BT-DDA)
     // ─────────────────────────────────────────────
 
@@ -380,8 +419,8 @@ public class DifficultyManager : MonoBehaviour
     /// </summary>
     public void AdjustLevel(int amount)
     {
-        _lastAdjustment           = amount;
-        _roomsSinceLastAdjustment = 0;
+        _lastAdjustment              = amount;
+        _dungeonsSinceLastAdjustment = 0;
         ApplyAdjustment(amount);
     }
 

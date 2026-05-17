@@ -96,9 +96,13 @@ public class GameOverUI : MonoBehaviour
 
     private void OnRetry()
     {
+        // El DDA evalua las metricas (que incluyen la muerte) y ajusta la dificultad
+        // antes de recargar — asi el retry empieza ya con el nivel corregido
+        if (DifficultyManager.Instance != null)
+            DifficultyManager.Instance.EvaluateAndApplyImmediate();
+
         // ResetForRetry conserva las muertes acumuladas entre intentos
-        if (ScoreManager.Instance      != null) ScoreManager.Instance.ResetForRetry();
-        if (DifficultyManager.Instance != null) DifficultyManager.Instance.currentLevel = 1;
+        if (ScoreManager.Instance != null) ScoreManager.Instance.ResetForRetry();
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible   = false;
@@ -108,8 +112,10 @@ public class GameOverUI : MonoBehaviour
 
     private void OnMainMenu()
     {
-        if (ScoreManager.Instance     != null) ScoreManager.Instance.ResetAll();
-        if (DifficultyManager.Instance != null) DifficultyManager.Instance.currentLevel = 1;
+        if (ScoreManager.Instance != null) ScoreManager.Instance.ResetAll();
+
+        // No tocamos DifficultyManager aqui — el menu llamara a SetStartingDifficulty
+        // cuando el jugador elija dificultad de nuevo
 
         SceneManager.LoadScene(mainMenuSceneName);
     }

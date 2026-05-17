@@ -26,6 +26,8 @@ public abstract class EnemyBase : MonoBehaviour
     protected float lastAttackTime;
     protected Vector3 spawnPosition;
 
+    private bool _isBeingKnockedBack = false;
+
     protected virtual void Awake()
     {
         currentHealth = maxHealth;
@@ -33,7 +35,30 @@ public abstract class EnemyBase : MonoBehaviour
 
     protected virtual void Start()
     {
-        spawnPosition = transform.position;
+        // Los enemigos se mueven por BT/NavMeshAgent, nunca por fisica.
+        // Desactivar gravedad del Rigidbody para evitar que se hundan en el suelo.
+        var rb = GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.isKinematic = true;
+            rb.useGravity  = false;
+        }
+
+        // Hacer warp al punto NavMesh mas cercano al spawnear
+        // Evita que el enemigo empiece fuera del NavMesh y caiga
+        var navAgent = GetComponent<UnityEngine.AI.NavMeshAgent>();
+        if (navAgent != null)
+        {
+            if (UnityEngine.AI.NavMesh.SamplePosition(
+                transform.position, out UnityEngine.AI.NavMeshHit hit, 5f,
+                UnityEngine.AI.NavMesh.AllAreas))
+            {
+                navAgent.Warp(hit.position);
+            }
+        }
+
+        spawnPosition = transform.position;   // guardar DESPUÉS del warp
+
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
             player = playerObj.transform;
@@ -49,6 +74,7 @@ public abstract class EnemyBase : MonoBehaviour
     protected virtual void Update()
     {
         if (player == null) return;
+        if (_isBeingKnockedBack) return; // el BT no corre durante el knockback
         UpdateBehavior();
     }
 
@@ -84,6 +110,55 @@ public abstract class EnemyBase : MonoBehaviour
 
     /// <summary>Devuelve la salud actual del enemigo (usado por PlayerCombat para detectar muertes).</summary>
     public float GetCurrentHealth() => currentHealth;
+
+    /// <summary>
+    /// Aplica un impulso de knockback al enemigo en la direccion indicada.
+    /// Desactiva el NavMeshAgent brevemente para que el movimiento sea visible.
+    /// </summary>
+    public virtual void Knockback(Vector3 direction, float force)
+    {
+        StartCoroutine(KnockbackCoroutine(direction.normalized, force));
+    }
+
+    private IEnumerator KnockbackCoroutine(Vector3 dir, float force)
+    {
+        _isBeingKnockedBack = true;
+
+        var nav = GetComponent<UnityEngine.AI.NavMeshAgent>();
+        if (nav != null && nav.isOnNavMesh)
+        {
+            nav.isStopped = true;
+            nav.ResetPath();
+        }
+
+        float elapsed  = 0f;
+        float duration = 0.2f;
+
+        while (elapsed < duration)
+        {
+            float t = 1f - (elapsed / duration);
+            if (nav != null && nav.enabled && nav.isOnNavMesh)
+                nav.Move(dir * force * t * Time.deltaTime);
+            else
+                transform.position += dir * force * t * Time.deltaTime;
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        if (nav != null)
+        {
+            if (!nav.isOnNavMesh)
+            {
+                if (UnityEngine.AI.NavMesh.SamplePosition(
+                    transform.position, out UnityEngine.AI.NavMeshHit hit, 3f,
+                    UnityEngine.AI.NavMesh.AllAreas))
+                    nav.Warp(hit.position);
+            }
+            nav.isStopped = false;
+        }
+
+        _isBeingKnockedBack = false;
+    }
 
     /// <summary>
     /// Aplica el scaling del nivel de dificultad actual al spawnear.

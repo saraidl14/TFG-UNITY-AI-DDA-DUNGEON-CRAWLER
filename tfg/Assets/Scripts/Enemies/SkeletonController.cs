@@ -49,11 +49,11 @@ public class SkeletonController : EnemyBase
         maxHealth       = 50f;
         damage          = 8f;
         moveSpeed       = 2.5f;
-        attackRange     = 1.5f;
+        attackRange     = 3f;
         attackCooldown  = 1.2f;
         detectionRange  = 9f;
         maxRoamDistance = 10f;
-        coinReward      = 15;
+        coinReward      = 30;
         currentHealth   = maxHealth;
 
         _animator = GetComponent<Animator>();
@@ -89,7 +89,8 @@ public class SkeletonController : EnemyBase
             new TaskChasePlayer(transform, moveSpeed, maxRoamDistance, spawnPosition)
         });
 
-        _btRoot = new Selector(new List<Node> { attackSequence, chaseSequence });
+        var patrolNode = new TaskPatrol(transform, moveSpeed, maxRoamDistance, spawnPosition, waitTime: 2f);
+        _btRoot = new Selector(new List<Node> { attackSequence, chaseSequence, patrolNode });
 
         if (player != null)
             _btRoot.SetData("player", player);

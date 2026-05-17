@@ -72,18 +72,16 @@ public class TaskChasePlayer : Node
         }
         else
         {
-            // ── Fallback sin NavMesh: movimiento directo (atraviesa paredes) ──
-            Vector3 direction    = (player.position - _enemyTransform.position).normalized;
-            Vector3 nextPosition = _enemyTransform.position + direction * _moveSpeed * Time.deltaTime;
-
-            if (Vector3.Distance(nextPosition, _spawnPosition) <= _maxRoamDistance)
+            // Sin NavMeshAgent o fuera del NavMesh: intentar warp al punto mas cercano
+            // Si no es posible, no moverse (mejor quieto que atravesando paredes)
+            if (agent != null && !agent.isOnNavMesh)
             {
-                _enemyTransform.position = nextPosition;
-
-                Vector3 lookDir = _invertRotation ? -direction : direction;
-                if (lookDir != Vector3.zero)
-                    _enemyTransform.rotation = Quaternion.LookRotation(
-                        new Vector3(lookDir.x, 0f, lookDir.z));
+                if (UnityEngine.AI.NavMesh.SamplePosition(
+                    _enemyTransform.position, out UnityEngine.AI.NavMeshHit hit, 2f,
+                    UnityEngine.AI.NavMesh.AllAreas))
+                {
+                    agent.Warp(hit.position);
+                }
             }
         }
 

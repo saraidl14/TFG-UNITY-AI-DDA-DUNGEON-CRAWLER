@@ -135,7 +135,7 @@ public class InstructionsUI : MonoBehaviour
 
             // ── 3. COMBATE CUERPO A CUERPO ───────────────────────────────
             new Page(
-                "⚔️  Combate — Cuerpo a cuerpo",
+                "Combate — Cuerpo a cuerpo",
                 "<b>Ataque básico</b>\n" +
                 "  Clic izquierdo  →  Golpe rápido, sin coste adicional.\n\n" +
                 "<b>Ataque pesado</b>\n" +
@@ -159,7 +159,7 @@ public class InstructionsUI : MonoBehaviour
                 "  Clic izquierdo  →  Disparar una flecha (con el arco equipado)\n\n" +
                 "<b>Requisito</b>\n" +
                 "  Para usar el arco necesitas <color=#FFD700>flechas</color> en el inventario (slots generales 4-9).\n" +
-                "  Cada disparo consume una flecha automáticamente.\n\n" +
+                "  Cada disparo consume una flecha automáticamente." + "(Cuando recibes el arco te dan 10 flechas)\n\n" +
                 "<b>Sin flechas</b>\n" +
                 "  Si te quedas sin flechas, el arco no dispara.\n" +
                 "  Encuéntralas en cofres o en el cofre inicial de la primera mazmorra.\n\n" +
@@ -171,7 +171,6 @@ public class InstructionsUI : MonoBehaviour
                 "Inventario",
                 "<b>Abrir / cerrar</b>\n" +
                 "  I  →  Abrir o cerrar el inventario\n" +
-                "  Escape  →  Cerrar\n\n" +
                 "<b>Distribución de slots</b>\n" +
                 "  Slots  1-3  →  Solo armas\n" +
                 "  Slots  4-9  →  Pociones, flechas, escudos, etc.\n\n" +
@@ -184,6 +183,21 @@ public class InstructionsUI : MonoBehaviour
                 "  También puedes pulsar <b>Descartar</b> en el panel de detalle del ítem.\n\n" +
                 "<b>Ver detalles</b>\n" +
                 "  Clic izquierdo en un ítem  →  Abre el panel lateral con stats, mejora y reparación."
+            ),
+
+            new Page(
+                "Menu de pausa",
+                "<b>Abrir / cerrar</b>\n" +
+                "P →  Abrir o cerrar el menú de pausa\n\n" +
+                "<b>Reanudar</b>\n" +
+                "  Botón 'Volver al juego' o Escape  →  Cierra el menu de pausa y reanuda la partida\n\n" +
+                "<b>Salir al menú principal</b>\n" +
+                "  Botón 'Menu principal'  →  Carga la escena del menú principal" +
+                "\n\n<color=#AAAAAA>El menú de pausa bloquea el movimiento y el combate, pero no la cámara.</color>" +
+                "\n\n<color=#AAAAAA>El menú de pausa no se muestra en esta pantalla de instrucciones, pero puedes probarlo durante el juego.</color>" +
+                "<b>Salir del juego </b>\n" +
+                "  Botón 'Exit'  →  Cierra la aplicación"
+
             ),
 
             // ── 6. BARRA RÁPIDA ───────────────────────────────────────────

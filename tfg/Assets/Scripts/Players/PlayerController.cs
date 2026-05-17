@@ -15,7 +15,8 @@ public class PlayerController : MonoBehaviour
 
     [Header("Camara")]
     public Camera playerCamera;
-    public float mouseSensitivity = 100f;
+    [Tooltip("Sensibilidad base. En juego se sobreescribe con el valor guardado en PlayerPrefs.")]
+    public float mouseSensitivity = 50f;
 
     [Header("Boost de Velocidad")]
     [Tooltip("Velocidad extra ganada por cada boss derrotado.")]
@@ -48,6 +49,9 @@ public class PlayerController : MonoBehaviour
         // Recuperar boost acumulado de mazmorras anteriores
         if (GameManager.Instance != null)
             _speedBoost = GameManager.Instance.AccumulatedSpeedBoost;
+
+        // Cargar sensibilidad guardada (si existe)
+        mouseSensitivity = PlayerPrefs.GetFloat("mouseSensitivity", 50f);
     }
 
     /// <summary>Boost de velocidad temporal por poción (se revierte al expirar).</summary>

@@ -40,11 +40,12 @@ public class TaskShootProjectile : Node
         Transform player = (Transform)playerObj;
         float dist = Vector3.Distance(_self.position, player.position);
 
-        // Fuera de rango de disparo
+        // Fuera de rango de disparo → FAILURE para que chase lo acerque
         if (dist > _maxRange) { state = NodeState.FAILURE; return state; }
 
-        // Cooldown: FAILURE para que el Selector pruebe chase/flee mientras espera
-        if (Time.time < _lastShootTime + _cooldown) { state = NodeState.FAILURE; return state; }
+        // En rango pero en cooldown → RUNNING: el mago espera quieto sin acercarse
+        // (FAILURE aqui haría caer al chase sequence y el mago se pegaría al jugador)
+        if (Time.time < _lastShootTime + _cooldown) { state = NodeState.RUNNING; return state; }
 
         if (_projectilePrefab == null) { state = NodeState.FAILURE; return state; }
 

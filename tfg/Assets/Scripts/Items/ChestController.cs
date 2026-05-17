@@ -126,7 +126,8 @@ public class ChestController : MonoBehaviour
         if (_pendingLoot.Count == 0) return;
         if (Inventory.Instance == null) return;
 
-        List<(ItemData item, int qty)> failed = new();
+        List<(ItemData item, int qty)> failed  = new();
+        List<(ItemData item, int qty)> success = new();
 
         foreach ((ItemData item, int qty) in _pendingLoot)
         {
@@ -134,12 +135,19 @@ public class ChestController : MonoBehaviour
             int safeQty = Mathf.Max(1, qty);          // nunca dar 0 unidades
             bool added = Inventory.Instance.AddItem(item, safeQty);
             if (added)
+            {
+                success.Add((item, safeQty));
                 Debug.Log($"[ChestController] {item.itemName} x{safeQty} añadido al inventario.");
+            }
             else
                 failed.Add((item, safeQty));
         }
 
         _pendingLoot.Clear();
+
+        // Mostrar popup con los ítems recibidos correctamente
+        if (success.Count > 0 && LootReceivedPopupUI.Instance != null)
+            LootReceivedPopupUI.Instance.Show(success);
 
         if (failed.Count > 0)
         {
