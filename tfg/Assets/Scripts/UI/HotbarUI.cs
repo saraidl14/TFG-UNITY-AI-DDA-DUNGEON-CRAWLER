@@ -188,10 +188,15 @@ public class HotbarUI : MonoBehaviour
         int invSlot = _invMapping[hotbarSlot];
         Inventory.Slot slot = Inventory.Instance.GetSlot(invSlot);
 
-        // No cambiar el arma equipada si el slot está vacío
-        if (slot.IsEmpty) return;
-
         _activeWeaponSlot = hotbarSlot;
+
+        // Slot vacío → desequipar arma (vuelve a puños)
+        if (slot.IsEmpty)
+        {
+            _combat.SetActiveWeapon(null);
+            return;
+        }
+
         _combat.SetActiveWeapon(slot.item as WeaponData);
     }
 
