@@ -125,38 +125,27 @@ public abstract class EnemyBase : MonoBehaviour
         _isBeingKnockedBack = true;
 
         var nav = GetComponent<UnityEngine.AI.NavMeshAgent>();
-        if (nav != null && nav.isOnNavMesh)
-        {
-            nav.isStopped = true;
-            nav.ResetPath();
-        }
+        if (nav != null) { nav.isStopped = true; nav.ResetPath(); }
 
-        float elapsed  = 0f;
-        float duration = 0.2f;
+        // Calcular posicion destino del knockback
+        Vector3 targetPos = transform.position + dir * force;
 
-        while (elapsed < duration)
-        {
-            float t = 1f - (elapsed / duration);
-            if (nav != null && nav.enabled && nav.isOnNavMesh)
-                nav.Move(dir * force * t * Time.deltaTime);
-            else
-                transform.position += dir * force * t * Time.deltaTime;
-            elapsed += Time.deltaTime;
-            yield return null;
-        }
-
+        // Buscar el punto valido mas cercano en el NavMesh hacia esa direccion
         if (nav != null)
         {
-            if (!nav.isOnNavMesh)
-            {
-                if (UnityEngine.AI.NavMesh.SamplePosition(
-                    transform.position, out UnityEngine.AI.NavMeshHit hit, 3f,
-                    UnityEngine.AI.NavMesh.AllAreas))
-                    nav.Warp(hit.position);
-            }
-            nav.isStopped = false;
+            if (UnityEngine.AI.NavMesh.SamplePosition(
+                    targetPos, out UnityEngine.AI.NavMeshHit hit, force, UnityEngine.AI.NavMesh.AllAreas))
+                nav.Warp(hit.position);  // teletransporte instantaneo al punto de impacto
+        }
+        else
+        {
+            transform.position = targetPos;
         }
 
+        // Pausa breve para que se vea el desplazamiento antes de reanudar
+        yield return new WaitForSeconds(0.15f);
+
+        if (nav != null) nav.isStopped = false;
         _isBeingKnockedBack = false;
     }
 

@@ -22,8 +22,8 @@ MonoBehaviour:
   attackSpeed: 2
   maxDurability: 50
   rarity: 0
-  weaponModelPrefab: {fileID: 136875959953777760, guid: f247048c56f0f7548bf717a213039cd0, type: 3}
-  modelLocalPosition: {x: 0, y: 0, z: 0}
+  weaponModelPrefab: {fileID: 8150136701537905453, guid: 84ea9c191a0ba7a40a16fe7e077c5efb, type: 3}
+  modelLocalPosition: {x: -0.5, y: 0, z: 0}
   modelLocalRotation: {x: 0, y: 0, z: 0}
   modelLocalScale: 1
   currentDurability: 50

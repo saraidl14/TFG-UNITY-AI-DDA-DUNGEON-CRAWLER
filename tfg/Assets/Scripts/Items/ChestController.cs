@@ -196,6 +196,6 @@ public class ChestController : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, 1.5f);
+        Gizmos.DrawWireSphere(transform.position, 2.5f);
     }
 }

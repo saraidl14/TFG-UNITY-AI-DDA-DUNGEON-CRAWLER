@@ -47,7 +47,7 @@ public class PlayerCombat : MonoBehaviour
     // ─────────────────────────────────────────────
     [Header("Knockback al golpear")]
     [Tooltip("Fuerza del empuje que recibe el enemigo al ser golpeado.")]
-    public float knockbackForce = 5f;
+    public float knockbackForce = 2.5f;
 
     // ─────────────────────────────────────────────
     // ARCO - APUNTADO (RMB)
@@ -113,11 +113,15 @@ public class PlayerCombat : MonoBehaviour
     // REFERENCIAS
     // ─────────────────────────────────────────────
     [Header("Modelo 3D del arma")]
-    [Tooltip("GameObject vacío hijo de la cámara donde se instancia el modelo 3D del arma equipada.")]
+    [Tooltip("WeaponHolder hijo de Hand_R (mano derecha).")]
     public WeaponHolder weaponHolder;
 
-    private PlayerHealth playerHealth;
-    private Camera playerCamera;
+    [Tooltip("WeaponHolder hijo de Hand_L (mano izquierda, para arcos).")]
+    public WeaponHolder weaponHolderLeft;
+
+    private PlayerHealth   playerHealth;
+    private Camera         playerCamera;
+    private PlayerAnimator _playerAnimator;
 
     // ─────────────────────────────────────────────
     // CICLO DE VIDA
@@ -125,7 +129,8 @@ public class PlayerCombat : MonoBehaviour
 
     private void Awake()
     {
-        playerHealth = GetComponent<PlayerHealth>();
+        playerHealth    = GetComponent<PlayerHealth>();
+        _playerAnimator = GetComponent<PlayerAnimator>();
 
         // Buscar la camara hija del jugador
         playerCamera = GetComponentInChildren<Camera>();
@@ -166,6 +171,8 @@ public class PlayerCombat : MonoBehaviour
 
         lastBasicAttackTime = Time.time;
 
+        _playerAnimator?.TriggerAttack();
+
         if (_equippedWeapon is LongRangeWeaponData bow)
         {
             ShootArrow(bow);
@@ -203,6 +210,7 @@ public class PlayerCombat : MonoBehaviour
 
         lastHeavyAttackTime = Time.time;
         Debug.Log("[PlayerCombat] Ataque pesado ejecutado.");
+        _playerAnimator?.TriggerAttack();
         PerformAttack(heavyAttackDamage, heavyAttackRange);
     }
 
@@ -437,11 +445,18 @@ public class PlayerCombat : MonoBehaviour
             Debug.Log("[PlayerCombat] Sin arma equipada. Stats base restaurados.");
         }
 
-        // Actualizar el modelo 3D en la mano
-        if (weaponHolder != null)
+        // Actualizar el modelo 3D en la mano correcta
+        bool leftHand = weapon != null && weapon.useLeftHand;
+
+        if (leftHand)
         {
-            if (weapon != null) weaponHolder.ShowWeapon(weapon);
-            else                weaponHolder.HideWeapon();
+            weaponHolderLeft?.ShowWeapon(weapon);
+            weaponHolder?.HideWeapon();
+        }
+        else
+        {
+            weaponHolder?.ShowWeapon(weapon);
+            weaponHolderLeft?.HideWeapon();
         }
     }
 

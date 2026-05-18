@@ -24,7 +24,7 @@ MonoBehaviour:
   rarity: 0
   weaponModelPrefab: {fileID: 8651233167569021224, guid: 55292b8cd2a0dab47bfe2579cbfc515e, type: 3}
   modelLocalPosition: {x: 0, y: 0, z: 0}
-  modelLocalRotation: {x: 0, y: 0, z: 0}
+  modelLocalRotation: {x: 0, y: 0, z: 90}
   modelLocalScale: 1
   currentDurability: 100
   upgradeLevel: 0

@@ -22,10 +22,11 @@ MonoBehaviour:
   attackSpeed: 1
   maxDurability: 100
   rarity: 0
-  weaponModelPrefab: {fileID: 2887624186677587833, guid: 51362293ceb7d184ebd51e3d4a4c0d78, type: 3}
+  weaponModelPrefab: {fileID: 4361851498993768102, guid: 7922111501f7a0f44985ff0623e3aa00, type: 3}
   modelLocalPosition: {x: 0, y: 0, z: 0}
-  modelLocalRotation: {x: 0, y: 0, z: 0}
-  modelLocalScale: 1
+  modelLocalRotation: {x: 0, y: 90, z: 0}
+  modelLocalScale: 2
+  useLeftHand: 1
   currentDurability: 100
   upgradeLevel: 0
   projectilePrefab: {fileID: 5894124032144582427, guid: 8240a279a29e0bd4c83d5be23d4e0714, type: 3}

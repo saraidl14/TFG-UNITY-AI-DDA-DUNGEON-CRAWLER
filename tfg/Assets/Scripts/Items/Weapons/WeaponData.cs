@@ -52,6 +52,12 @@ public abstract class WeaponData : ItemData
     [Tooltip("Escala del modelo en mano (1 = tamaño original del prefab).")]
     public float modelLocalScale = 1f;
 
+    [Tooltip("Si está marcado, el arma se coloca en la mano izquierda (ej: arco).")]
+    public bool useLeftHand = false;
+
+    [Tooltip("Tipo de animación de ataque que usa esta arma.")]
+    public WeaponAnimationType weaponAnimationType = WeaponAnimationType.Sword;
+
     // ─────────────────────────────────────────────
     // ESTADO RUNTIME (se modifica en la instancia clonada del inventario)
     // ─────────────────────────────────────────────
