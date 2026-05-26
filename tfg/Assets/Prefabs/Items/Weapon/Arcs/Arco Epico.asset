@@ -28,9 +28,9 @@ MonoBehaviour:
   modelLocalScale: 2
   useLeftHand: 1
   weaponAnimationType: 3
-  currentDurability: 100
+  currentDurability: 150
   upgradeLevel: 0
   projectilePrefab: {fileID: 5894124032144582427, guid: 8240a279a29e0bd4c83d5be23d4e0714, type: 3}
   projectileSpeed: 30
   maxAmmo: 100
-  currentAmmo: 20
+  currentAmmo: 100

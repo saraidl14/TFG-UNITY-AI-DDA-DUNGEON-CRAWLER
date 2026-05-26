@@ -24,6 +24,7 @@ public class LongRangeWeaponData : WeaponData
     [Tooltip("Munición máxima por carga.")]
     public int maxAmmo = 20;
 
+
     /// <summary>Munición actual (runtime, se resetea al recargar).</summary>
     [HideInInspector] public int currentAmmo;
 

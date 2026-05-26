@@ -6,6 +6,8 @@ TagManager:
   tags:
   - SpawnPoint
   - Rooms
+  - SkyboxCamera
+  - Enemy
   layers:
   - Default
   - TransparentFX

@@ -89,8 +89,10 @@ public class RoomGenerateTemplates : MonoBehaviour
 
     private void Awake()
     {
-        // Limpiar registros estáticos al empezar una nueva mazmorra
-        // (RuntimeInitializeOnLoadMethod solo funciona al arrancar el juego, no al cambiar de escena)
+        // Destruir las salas de la mazmorra anterior antes de generar la nueva
+        foreach (GameObject room in rooms)
+            if (room != null) Destroy(room);
+
         RoomSpawns.ResetStatic();
         AddRooms.OccupiedPositions.Clear();
         rooms.Clear();
@@ -122,8 +124,9 @@ public class RoomGenerateTemplates : MonoBehaviour
         // Hornear NavMesh con todas las salas ya generadas
         if (navMeshSurface != null)
         {
-            navMeshSurface.BuildNavMesh();
-            Debug.Log("[RoomGenerateTemplates] NavMesh horneado correctamente.");
+            navMeshSurface.RemoveData();   // eliminar el NavMesh de la mazmorra anterior
+            navMeshSurface.BuildNavMesh(); // hornear sobre la nueva geometría
+            Debug.Log("[RoomGenerateTemplates] NavMesh reseteado y horneado correctamente.");
         }
         else
         {
@@ -307,6 +310,9 @@ public class RoomGenerateTemplates : MonoBehaviour
     [Range(0f, 1f)]
     public float chestSpawnChance = 0.6f;
 
+    [Tooltip("Offset vertical del cofre sobre el suelo detectado. Ajusta si el pivot del prefab no está en la base.")]
+    public float chestYOffset = 0.5f;
+
     private void SpawnHelps()
     {
         if (chestPrefab == null || chestTypes == null || chestTypes.Length == 0) return;
@@ -330,24 +336,28 @@ public class RoomGenerateTemplates : MonoBehaviour
                 ? GetRoomCorner(room)
                 : GetRoomCenter(room);
 
-            // ── Corrección de Y usando el NavMesh (ya horneado) ──
-            // Buscar desde 10u POR ENCIMA del transform de la sala (punto de referencia fiable).
-            // No usamos spawnPos.y porque GetRoomCenter puede devolver un Y erróneo.
-            NavMeshHit nmHit;
-            Vector3 searchOrigin = new Vector3(spawnPos.x,
-                                               room.transform.position.y + 10f,
-                                               spawnPos.z);
-            if (NavMesh.SamplePosition(searchOrigin, out nmHit, 15f, NavMesh.AllAreas))
+            // ── Corrección de Y: Raycast hacia abajo desde arriba para encontrar el suelo real ──
+            float castOriginY = room.transform.position.y + 20f;
+            Vector3 rayOrigin = new Vector3(spawnPos.x, castOriginY, spawnPos.z);
+            int floorMask = LayerMask.GetMask("Suelo");
+            if (floorMask == 0) floorMask = ~0; // si no existe la layer "Suelo", usar todas
+
+            if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit rayHit, 40f, floorMask))
             {
-                // +0.25f asegura que el cofre queda por encima aunque el pivot no esté en la base
-                spawnPos = new Vector3(spawnPos.x, nmHit.position.y + 0.25f, spawnPos.z);
-                Debug.Log($"[SpawnHelps] {room.name} → NavMesh Y={nmHit.position.y:F2} → cofre Y={spawnPos.y:F2}");
+                spawnPos = new Vector3(spawnPos.x, rayHit.point.y + chestYOffset, spawnPos.z);
+                Debug.Log($"[SpawnHelps] {room.name} → Raycast Y={rayHit.point.y:F2} → cofre Y={spawnPos.y:F2}");
             }
             else
             {
-                // Si el NavMesh no cubre esa zona, fallback al transform de la sala + margen
-                spawnPos = new Vector3(spawnPos.x, room.transform.position.y + 0.25f, spawnPos.z);
-                Debug.LogWarning($"[SpawnHelps] {room.name} → NavMesh no encontrado, Y fallback={spawnPos.y:F2}");
+                // Fallback: NavMesh
+                NavMeshHit nmHit;
+                Vector3 searchOrigin = new Vector3(spawnPos.x, room.transform.position.y + 10f, spawnPos.z);
+                if (NavMesh.SamplePosition(searchOrigin, out nmHit, 15f, NavMesh.AllAreas))
+                    spawnPos = new Vector3(spawnPos.x, nmHit.position.y + chestYOffset, spawnPos.z);
+                else
+                    spawnPos = new Vector3(spawnPos.x, room.transform.position.y + chestYOffset, spawnPos.z);
+
+                Debug.LogWarning($"[SpawnHelps] {room.name} → Raycast no impactó suelo, Y fallback={spawnPos.y:F2}");
             }
 
             GameObject chest = Instantiate(chestPrefab, spawnPos, Quaternion.identity);

@@ -21,7 +21,7 @@ public class Arrow : MonoBehaviour
     // ─────────────────────────────────────────────
     [HideInInspector] public float damage        = 10f;
     [HideInInspector] public float speed         = 15f;
-    [HideInInspector] public float maxLifetime   = 5f;   // segundos antes de auto-destruirse
+    [HideInInspector] public float maxLifetime   = 7f;   // segundos antes de auto-destruirse
     [HideInInspector] public float knockbackForce = 4f;  // fuerza de retroceso al impactar
 
     private float _spawnTime;
@@ -46,23 +46,22 @@ public class Arrow : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        // Ignorar el propio jugador
         if (other.CompareTag("Player")) return;
 
-        // ¿Es un enemigo?
-        EnemyBase enemy = other.GetComponent<EnemyBase>();
+        bool isEnemy = other.CompareTag("Enemy")
+                    || other.gameObject.layer == LayerMask.NameToLayer("Enemy");
+
+        if (!isEnemy) return;
+
+        EnemyBase enemy = other.GetComponent<EnemyBase>() ?? other.GetComponentInParent<EnemyBase>();
         if (enemy != null)
         {
             enemy.TakeDamage(damage);
-
-            // Knockback en la direccion de vuelo de la flecha
             if (knockbackForce > 0f)
                 enemy.Knockback(transform.forward, knockbackForce);
-
             Debug.Log($"[Arrow] Impacto en {other.name} | Daño: {damage}");
         }
 
-        // Destruir la flecha al impactar (con o sin enemigo)
         Destroy(gameObject);
     }
 }

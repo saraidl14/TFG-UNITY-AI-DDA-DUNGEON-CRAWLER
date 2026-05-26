@@ -46,6 +46,11 @@ public class GameOverUI : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible   = true;
 
+        // Evaluar y aplicar el ajuste DDA ahora (incluye la muerte),
+        // así PopulateUI muestra el valor correcto y Retry ya arranca con el nivel ajustado
+        if (DifficultyManager.Instance != null)
+            DifficultyManager.Instance.EvaluateAndApplyImmediate();
+
         PopulateUI();
         SetupButtons();
     }
@@ -100,11 +105,6 @@ public class GameOverUI : MonoBehaviour
 
     private void OnRetry()
     {
-        // El DDA evalua las metricas (que incluyen la muerte) y ajusta la dificultad
-        // antes de recargar — asi el retry empieza ya con el nivel corregido
-        if (DifficultyManager.Instance != null)
-            DifficultyManager.Instance.EvaluateAndApplyImmediate();
-
         // ResetForRetry conserva las muertes acumuladas entre intentos
         if (ScoreManager.Instance != null) ScoreManager.Instance.ResetForRetry();
 

@@ -21,9 +21,10 @@ public class ChestController : MonoBehaviour
     public List<LootEntry> guaranteedLoot = new();
 
     [Header("Flechas automáticas con arco")]
-    [Tooltip("Si el loot garantizado incluye un arma de largo alcance (arco), se añaden estas flechas automáticamente.")]
+    [Tooltip("Si el loot garantizado incluye un arco, se añaden estas flechas automáticamente.")]
     public AmmoData arrowsItem;
     [Min(1)] public int arrowsCount = 20;
+
 
     [Header("Interacción")]
     public KeyCode interactKey = KeyCode.E;
@@ -96,7 +97,7 @@ public class ChestController : MonoBehaviour
         // ── 1. Rodar TODO el loot al abrir (guardado para darlo tras la animación) ──
         _pendingLoot.Clear();
 
-        bool bowInGuaranteed = false;
+        bool bowWillBeGiven = false;
         foreach (LootEntry entry in guaranteedLoot)
         {
             if (entry == null || entry.item == null) continue;
@@ -104,12 +105,8 @@ public class ChestController : MonoBehaviour
             _pendingLoot.Add((entry.item, qty));
 
             if (entry.item is LongRangeWeaponData)
-                bowInGuaranteed = true;
+                bowWillBeGiven = true;
         }
-
-        // Si se garantiza un arco, también dar las flechas configuradas
-        if (bowInGuaranteed && arrowsItem != null)
-            _pendingLoot.Add((arrowsItem, Mathf.Max(1, arrowsCount)));
 
         if (chestData != null)
         {
@@ -118,8 +115,15 @@ public class ChestController : MonoBehaviour
             {
                 int qty = Mathf.Max(1, Random.Range(result.minQuantity, result.maxQuantity + 1));
                 _pendingLoot.Add((result.item, qty));
+
+                if (result.item is LongRangeWeaponData)
+                    bowWillBeGiven = true;
             }
         }
+
+        // Si hay un arco en el loot (garantizado o aleatorio), dar también las flechas
+        if (bowWillBeGiven && arrowsItem != null)
+            _pendingLoot.Add((arrowsItem, Mathf.Max(1, arrowsCount)));
 
         // ── 2. Animar apertura y luego intentar entregar el loot ──
         StartCoroutine(AnimateOpen());

@@ -15363,6 +15363,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 850093659810418306, guid: cd7721970ecc7f644b3873203536fc1e, type: 3}
     - target: {fileID: 6904829615355644262, guid: df4abf97c5b8eac46b38ca8a10d43a44, type: 3}
+      propertyPath: chestYOffset
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6904829615355644262, guid: df4abf97c5b8eac46b38ca8a10d43a44, type: 3}
       propertyPath: navMeshSurface
       value: 
       objectReference: {fileID: 869951869}
@@ -15372,7 +15376,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6904829615355644262, guid: df4abf97c5b8eac46b38ca8a10d43a44, type: 3}
       propertyPath: chestTypes.Array.size
-      value: 2
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 6904829615355644262, guid: df4abf97c5b8eac46b38ca8a10d43a44, type: 3}
       propertyPath: topRooms.Array.data[0]
@@ -15394,6 +15398,18 @@ PrefabInstance:
       propertyPath: chestTypes.Array.data[1]
       value: 
       objectReference: {fileID: 11400000, guid: fc47e304b19577341b1c83a0dd4bc0ae, type: 2}
+    - target: {fileID: 6904829615355644262, guid: df4abf97c5b8eac46b38ca8a10d43a44, type: 3}
+      propertyPath: chestTypes.Array.data[2]
+      value: 
+      objectReference: {fileID: 11400000, guid: 4310cf062a8656d4bb54ed94935b8b79, type: 2}
+    - target: {fileID: 6904829615355644262, guid: df4abf97c5b8eac46b38ca8a10d43a44, type: 3}
+      propertyPath: chestTypes.Array.data[3]
+      value: 
+      objectReference: {fileID: 11400000, guid: 741278c57c2efed4ab547146e707e2b7, type: 2}
+    - target: {fileID: 6904829615355644262, guid: df4abf97c5b8eac46b38ca8a10d43a44, type: 3}
+      propertyPath: chestTypes.Array.data[4]
+      value: 
+      objectReference: {fileID: 11400000, guid: fd749e16832a86d49a6d7c9ac6c89971, type: 2}
     - target: {fileID: 6904829615355644262, guid: df4abf97c5b8eac46b38ca8a10d43a44, type: 3}
       propertyPath: rightRooms.Array.data[3]
       value: 

@@ -784,7 +784,7 @@ GameObject:
   - component: {fileID: 4604079031377747984}
   m_Layer: 6
   m_Name: ORC
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

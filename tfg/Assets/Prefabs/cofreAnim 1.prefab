@@ -133,8 +133,8 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 2.0122457
-  m_Center: {x: -0.022421837, y: 0.0047786236, z: -0.051809847}
+  m_Radius: 2.650157
+  m_Center: {x: 0, y: 0, z: -0.2}
 --- !u!114 &1680654669072917119
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -150,6 +150,8 @@ MonoBehaviour:
   chestData: {fileID: 11400000, guid: fd749e16832a86d49a6d7c9ac6c89971, type: 2}
   firstDungeonOnly: 0
   guaranteedLoot: []
+  arrowsItem: {fileID: 0}
+  arrowsCount: 20
   interactKey: 101
   chestMesh: {fileID: 0}
   blendShapeIndex: 0

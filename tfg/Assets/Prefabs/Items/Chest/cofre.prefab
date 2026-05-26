@@ -29,7 +29,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 850093659810418306}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.8613144, z: -0, w: 0.5080724}
+  m_LocalRotation: {x: 0, y: 0.86131454, z: 0, w: 0.50807214}
   m_LocalPosition: {x: -3.5699997, y: 0.089999996, z: 3.4499998}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -150,6 +150,8 @@ MonoBehaviour:
   chestData: {fileID: 11400000, guid: fd749e16832a86d49a6d7c9ac6c89971, type: 2}
   firstDungeonOnly: 1
   guaranteedLoot: []
+  arrowsItem: {fileID: 11400000, guid: b431667e2f028e84dba885095607ab2b, type: 2}
+  arrowsCount: 20
   interactKey: 101
   chestMesh: {fileID: 0}
   blendShapeIndex: 0

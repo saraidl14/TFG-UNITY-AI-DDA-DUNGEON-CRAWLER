@@ -870,7 +870,7 @@ GameObject:
   - component: {fileID: 8533856700226920564}
   m_Layer: 6
   m_Name: Skeleton 1
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
