@@ -19,15 +19,40 @@ MonoBehaviour:
   lootTable:
     entries:
     - item: {fileID: 11400000, guid: 7d1de2282181409438cac9de06e04b53, type: 2}
-      weight: 33
+      weight: 25
       minQuantity: 1
       maxQuantity: 1
     - item: {fileID: 11400000, guid: dc58cfcc22d0c6d45a077223976696ab, type: 2}
-      weight: 33
+      weight: 25
       minQuantity: 1
       maxQuantity: 1
-    - item: {fileID: 11400000, guid: 7d1de2282181409438cac9de06e04b53, type: 2}
-      weight: 33
+    - item: {fileID: 11400000, guid: 8b13156e4e0eb3949b0ec5d75d046ec0, type: 2}
+      weight: 25
       minQuantity: 1
       maxQuantity: 1
+    - item: {fileID: 11400000, guid: 3da14a82b19bbaf4e9ede5acb59ee8f9, type: 2}
+      weight: 10
+      minQuantity: 1
+      maxQuantity: 1
+    - item: {fileID: 11400000, guid: 8419d0cc95211bb47a95957e6d24cec5, type: 2}
+      weight: 10
+      minQuantity: 1
+      maxQuantity: 1
+    - item: {fileID: 11400000, guid: 9ed2b61f560511d44a9be73ae55abb61, type: 2}
+      weight: 10
+      minQuantity: 1
+      maxQuantity: 1
+    - item: {fileID: 11400000, guid: c653c4fd8e7f41d409e3ca8094d5ec41, type: 2}
+      weight: 5
+      minQuantity: 1
+      maxQuantity: 1
+    - item: {fileID: 11400000, guid: a0f600f2fec9fe44f8a8e1a85d543196, type: 2}
+      weight: 5
+      minQuantity: 1
+      maxQuantity: 1
+    - item: {fileID: 11400000, guid: d06bc4f18940b1e46a8da3918f1e65ff, type: 2}
+      weight: 15
+      minQuantity: 1
+      maxQuantity: 1
+    premiumEntries: []
   emptyChance: 0

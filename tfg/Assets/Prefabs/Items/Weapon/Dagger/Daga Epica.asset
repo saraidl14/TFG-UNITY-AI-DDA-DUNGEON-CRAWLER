@@ -14,11 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemName: Daga Epica
   icon: {fileID: 21300000, guid: df605d8b16cf5614e9856708dfaf1661, type: 3}
-  description: 
+  description: Daga imponente que tiene un poder de combate de 50
   itemType: 0
   stackable: 0
   maxStack: 1
-  baseDamage: 10
+  baseDamage: 50
   attackSpeed: 1
   maxDurability: 100
   rarity: 0
@@ -26,6 +26,8 @@ MonoBehaviour:
   modelLocalPosition: {x: 0, y: 0, z: 0}
   modelLocalRotation: {x: 0, y: 0, z: 0}
   modelLocalScale: 1
+  useLeftHand: 0
+  weaponAnimationType: 1
   currentDurability: 100
   upgradeLevel: 0
   comboHits: 2

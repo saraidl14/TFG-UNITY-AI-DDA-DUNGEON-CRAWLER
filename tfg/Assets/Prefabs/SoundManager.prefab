@@ -1,0 +1,84 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &4969122963515801884
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4101845806692330563}
+  - component: {fileID: 4446667462961552052}
+  - component: {fileID: 6473161021512029866}
+  m_Layer: 0
+  m_Name: SoundManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4101845806692330563
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4969122963515801884}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1232.515, y: 152.3766, z: -1.1553353}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4446667462961552052
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4969122963515801884}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9c35fd2d228c4541b7ad1765a7fcf61, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  swordHit: {fileID: 8300000, guid: 27aadb489efa54349a9728dd12d6d0b3, type: 3}
+  punchHit: {fileID: 8300000, guid: dc5e82dcffa4ffa4e9e3ca19ccf19af7, type: 3}
+  playerHurtClips:
+  - {fileID: 8300000, guid: 1b4fd5f447dd32043ab3e87cf62a6481, type: 3}
+  - {fileID: 8300000, guid: 49d432da21a7f5b4d81b3ae89e13fbec, type: 3}
+  - {fileID: 8300000, guid: 7614fd4afe22ecf498630df89ddbc578, type: 3}
+  - {fileID: 8300000, guid: dbf57f3c883f74843b2920e771024eb0, type: 3}
+  chestOpen: {fileID: 8300000, guid: 878cbf2d67d9d12499f6657ae5b6f274, type: 3}
+  footsteps:
+  - {fileID: 8300000, guid: ae63f7f3153a04d4eb53f1ca68a72a74, type: 3}
+  footstepInterval: 0.4
+  bossGrowl: {fileID: 0}
+  sfxVolume: 0.83
+  footstepVolume: 0.86
+--- !u!114 &6473161021512029866
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4969122963515801884}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1076508e4040cf34986cc045ef58f75e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  musicMenu: {fileID: 8300000, guid: ed1e85597ff1c1843b18ed0e67a6760f, type: 3}
+  musicNormal: {fileID: 0}
+  musicLowHealth: {fileID: 0}
+  audioMenu: {fileID: 0}
+  audioNormal: {fileID: 0}
+  audioLowHealth: {fileID: 0}
+  umbralAlta: 0.6
+  umbralBaja: 0.3
+  fadeSpeed: 1
+  maxVolume: 0.8
+  playerHealth: {fileID: 0}

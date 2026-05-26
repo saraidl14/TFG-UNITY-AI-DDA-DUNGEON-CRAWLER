@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemName: Daga Comun
   icon: {fileID: 92852869, guid: a28ea67fd1839794ca973600b038babd, type: 3}
-  description: 
+  description: Daga dejada por un antiguo asesino, aun se escuchan los lamentos de
+    los muertos
   itemType: 0
   stackable: 0
   maxStack: 1
