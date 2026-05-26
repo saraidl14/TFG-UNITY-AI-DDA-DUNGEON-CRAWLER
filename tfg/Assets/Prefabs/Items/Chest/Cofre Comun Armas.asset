@@ -32,6 +32,7 @@ MonoBehaviour:
       maxQuantity: 1
     - item: {fileID: 11400000, guid: b431667e2f028e84dba885095607ab2b, type: 2}
       weight: 34
-      minQuantity: 1
-      maxQuantity: 1
+      minQuantity: 10
+      maxQuantity: 100
+    premiumEntries: []
   emptyChance: 0

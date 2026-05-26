@@ -23,9 +23,11 @@ MonoBehaviour:
   maxDurability: 50
   rarity: 0
   weaponModelPrefab: {fileID: 8150136701537905453, guid: 84ea9c191a0ba7a40a16fe7e077c5efb, type: 3}
-  modelLocalPosition: {x: -0.5, y: 0, z: 0}
+  modelLocalPosition: {x: -0.5, y: -0.5, z: 0}
   modelLocalRotation: {x: 0, y: 0, z: 0}
   modelLocalScale: 1
+  useLeftHand: 0
+  weaponAnimationType: 1
   currentDurability: 50
   upgradeLevel: 0
   comboHits: 2

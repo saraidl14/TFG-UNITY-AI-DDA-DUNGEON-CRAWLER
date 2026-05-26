@@ -22,4 +22,25 @@ MonoBehaviour:
       weight: 22
       minQuantity: 1
       maxQuantity: 1
+    - item: {fileID: 11400000, guid: 3da14a82b19bbaf4e9ede5acb59ee8f9, type: 2}
+      weight: 22
+      minQuantity: 1
+      maxQuantity: 1
+    - item: {fileID: 11400000, guid: 7d1de2282181409438cac9de06e04b53, type: 2}
+      weight: 10
+      minQuantity: 1
+      maxQuantity: 1
+    - item: {fileID: 11400000, guid: d06bc4f18940b1e46a8da3918f1e65ff, type: 2}
+      weight: 25
+      minQuantity: 1
+      maxQuantity: 1
+    - item: {fileID: 11400000, guid: dc58cfcc22d0c6d45a077223976696ab, type: 2}
+      weight: 25
+      minQuantity: 1
+      maxQuantity: 1
+    premiumEntries:
+    - item: {fileID: 11400000, guid: a0f600f2fec9fe44f8a8e1a85d543196, type: 2}
+      weight: 0
+      minQuantity: 0
+      maxQuantity: 0
   emptyChance: 0.05

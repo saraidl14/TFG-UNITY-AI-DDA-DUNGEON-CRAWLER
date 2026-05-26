@@ -18,7 +18,7 @@ MonoBehaviour:
   itemType: 0
   stackable: 0
   maxStack: 1
-  baseDamage: 15
+  baseDamage: 17
   attackSpeed: 2
   maxDurability: 100
   rarity: 1
@@ -26,6 +26,8 @@ MonoBehaviour:
   modelLocalPosition: {x: 0, y: 0, z: 0}
   modelLocalRotation: {x: 0, y: 0, z: 0}
   modelLocalScale: 1
+  useLeftHand: 0
+  weaponAnimationType: 1
   currentDurability: 100
   upgradeLevel: 0
   knockbackForce: 3

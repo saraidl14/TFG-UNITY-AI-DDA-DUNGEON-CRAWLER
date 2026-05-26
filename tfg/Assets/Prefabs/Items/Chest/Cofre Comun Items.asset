@@ -34,4 +34,9 @@ MonoBehaviour:
       weight: 20
       minQuantity: 1
       maxQuantity: 1
+    - item: {fileID: 11400000, guid: 3da14a82b19bbaf4e9ede5acb59ee8f9, type: 2}
+      weight: 5
+      minQuantity: 1
+      maxQuantity: 1
+    premiumEntries: []
   emptyChance: 0

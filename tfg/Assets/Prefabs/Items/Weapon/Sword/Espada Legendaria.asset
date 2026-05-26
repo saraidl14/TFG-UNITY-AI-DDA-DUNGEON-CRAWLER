@@ -18,14 +18,16 @@ MonoBehaviour:
   itemType: 0
   stackable: 0
   maxStack: 1
-  baseDamage: 15
-  attackSpeed: 2
+  baseDamage: 150
+  attackSpeed: 15
   maxDurability: 100
   rarity: 4
   weaponModelPrefab: {fileID: 2576570193848758378, guid: 6506be6d034dac448a2860b116ad1a3f, type: 3}
   modelLocalPosition: {x: 0, y: 0, z: 0}
   modelLocalRotation: {x: 0, y: 0, z: 0}
   modelLocalScale: 1
+  useLeftHand: 0
+  weaponAnimationType: 1
   currentDurability: 100
   upgradeLevel: 0
-  knockbackForce: 3
+  knockbackForce: 10
