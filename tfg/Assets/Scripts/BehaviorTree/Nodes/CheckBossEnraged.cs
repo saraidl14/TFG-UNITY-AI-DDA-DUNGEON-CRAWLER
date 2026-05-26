@@ -1,3 +1,8 @@
+/*  Nombre:      CheckBossEnraged.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       09/04/2026
+ *  Descripcion: Condición BT: comprueba si el boss ha entrado en fase 2 (enfurecido).
+ */
 using BehaviorTree;
 
 /// <summary>

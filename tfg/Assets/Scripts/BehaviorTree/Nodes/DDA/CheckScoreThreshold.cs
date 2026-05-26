@@ -1,3 +1,8 @@
+/*  Nombre:      CheckScoreThreshold.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       04/05/2026
+ *  Descripcion: Condición BT-DDA: comprueba si el score DDA supera un umbral.
+ */
 using BehaviorTree;
 
 /// <summary>

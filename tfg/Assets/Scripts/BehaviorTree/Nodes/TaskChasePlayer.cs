@@ -1,3 +1,8 @@
+/*  Nombre:      TaskChasePlayer.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       09/04/2026
+ *  Descripcion: Acción BT: mueve al enemigo hacia el jugador usando NavMeshAgent.
+ */
 using UnityEngine;
 using UnityEngine.AI;
 using BehaviorTree;

@@ -1,3 +1,8 @@
+/*  Nombre:      HealthBarUI.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       17/05/2026
+ *  Descripcion: Controla las barras de vida y stamina del jugador en el HUD con lerp suave.
+ */
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;

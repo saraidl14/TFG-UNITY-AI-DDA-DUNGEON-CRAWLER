@@ -95,7 +95,7 @@ public class Pause : MonoBehaviour
         Cursor.visible   = true;
         Cursor.lockState = CursorLockMode.None;
 
-        SceneLoader.LoadScene(nombreEscena);
+        UnityEngine.SceneManagement.SceneManager.LoadScene(nombreEscena);
     }
 
     /// <summary>

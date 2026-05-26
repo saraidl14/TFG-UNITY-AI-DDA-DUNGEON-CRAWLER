@@ -1,3 +1,8 @@
+/*  Nombre:      RoomSpawns.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       24/03/2026
+ *  Descripcion: Controla los puntos de spawn de cada sala en la generación procedural.
+ */
 using System.Collections.Generic;
 using UnityEngine;
 

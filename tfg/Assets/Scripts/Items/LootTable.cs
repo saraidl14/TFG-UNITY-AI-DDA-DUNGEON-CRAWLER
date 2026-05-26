@@ -1,3 +1,8 @@
+/*  Nombre:      LootTable.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       26/05/2026
+ *  Descripcion: Tabla de loot con selección aleatoria ponderada usada en cofres y enemigos.
+ */
 using System.Collections.Generic;
 using UnityEngine;
 

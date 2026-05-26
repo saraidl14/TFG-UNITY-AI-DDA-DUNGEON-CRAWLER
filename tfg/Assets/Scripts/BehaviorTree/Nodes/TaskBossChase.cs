@@ -1,3 +1,8 @@
+/*  Nombre:      TaskBossChase.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       21/04/2026
+ *  Descripcion: Acción BT: persecución del boss hacia el jugador usando NavMeshAgent.
+ */
 using UnityEngine;
 using UnityEngine.AI;
 using BehaviorTree;

@@ -1,3 +1,8 @@
+/*  Nombre:      ItemDetailPanel.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       17/04/2026
+ *  Descripcion: Panel lateral del inventario con stats, mejora y uso del ítem seleccionado.
+ */
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;

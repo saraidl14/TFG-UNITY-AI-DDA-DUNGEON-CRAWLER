@@ -1,3 +1,8 @@
+/*  Nombre:      TaskBossAttack.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       09/04/2026
+ *  Descripcion: Acción BT exclusiva del boss: ataca al jugador diferenciando fase normal y enraged.
+ */
 using UnityEngine;
 using BehaviorTree;
 

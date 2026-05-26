@@ -1,3 +1,8 @@
+/*  Nombre:      DifficultyManager.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       08/04/2026
+ *  Descripcion: Gestor central del sistema DDA bandado que ajusta la dificultad por sala.
+ */
 using UnityEngine;
 
 /// <summary>

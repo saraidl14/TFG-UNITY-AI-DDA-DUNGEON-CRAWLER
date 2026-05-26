@@ -1,3 +1,8 @@
+/*  Nombre:      HudManager.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       21/04/2026
+ *  Descripcion: Gestiona el HUD de partida: dificultad, puntuación, monedas y notificaciones DDA.
+ */
 using System.Collections;
 using UnityEngine;
 using TMPro;

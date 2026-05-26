@@ -1,3 +1,8 @@
+/*  Nombre:      TaskShootProjectile.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       09/04/2026
+ *  Descripcion: Acción BT: el enemigo dispara un proyectil hacia el jugador con cooldown.
+ */
 using UnityEngine;
 using BehaviorTree;
 

@@ -1,3 +1,8 @@
+/*  Nombre:      PlayerController.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       25/03/2026
+ *  Descripcion: Controla el movimiento, salto, cámara y gravedad del jugador en primera persona.
+ */
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
@@ -101,6 +106,12 @@ public class PlayerController : MonoBehaviour
 
         Vector3 move = transform.right * x + transform.forward * z;
         controller.Move(move * (moveSpeed + _speedBoost + _potionSpeedBoost) * Time.deltaTime);
+
+        // Pasos: loop mientras se mueve en el suelo, para al quedarse quieto
+        if (isGrounded && move.sqrMagnitude > 0.01f)
+            SoundManager.Instance?.StartFootsteps();
+        else
+            SoundManager.Instance?.StopFootsteps();
 
         // Gravedad y salto
         if (isGrounded && velocity.y < 0)

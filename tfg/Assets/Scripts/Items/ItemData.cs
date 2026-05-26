@@ -1,3 +1,8 @@
+/*  Nombre:      ItemData.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       17/04/2026
+ *  Descripcion: ScriptableObject base para todos los ítems del juego (nombre, icono, tipo).
+ */
 using UnityEngine;
 
 /// <summary>

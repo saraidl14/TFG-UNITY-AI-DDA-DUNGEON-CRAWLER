@@ -1,3 +1,8 @@
+/*  Nombre:      InstructionsUI.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       17/05/2026
+ *  Descripcion: Pantalla de instrucciones con páginas navegables desde el menú principal.
+ */
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;

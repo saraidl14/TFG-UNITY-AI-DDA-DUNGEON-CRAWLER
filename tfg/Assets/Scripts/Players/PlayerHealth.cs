@@ -1,3 +1,8 @@
+/*  Nombre:      PlayerHealth.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       25/03/2026
+ *  Descripcion: Gestiona la salud, stamina dinámica y dash del jugador con eventos DDA.
+ */
 using System.Collections;
 using UnityEngine;
 
@@ -166,6 +171,8 @@ public class PlayerHealth : MonoBehaviour
 
         currentHealth -= amount;
         currentHealth  = Mathf.Max(currentHealth, 0f);
+
+        SoundManager.Instance?.PlayPlayerHurt();
 
         // Registrar daño en métricas DDA
         if (MetricsTracker.Instance != null)

@@ -1,3 +1,8 @@
+/*  Nombre:      WeaponHolder.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       26/05/2026
+ *  Descripcion: Gestiona el modelo 3D del arma equipada visible en la mano del jugador.
+ */
 using UnityEngine;
 
 /// <summary>

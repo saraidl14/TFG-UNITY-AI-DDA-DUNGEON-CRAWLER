@@ -1,3 +1,8 @@
+/*  Nombre:      ScoreManager.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       08/04/2026
+ *  Descripcion: Gestiona la puntuación del juego aplicando multiplicadores DDA por sala.
+ */
 using UnityEngine;
 
 /// <summary>

@@ -1,3 +1,8 @@
+/*  Nombre:      EnemyBase.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       25/03/2026
+ *  Descripcion: Clase abstracta base con los stats y comportamientos comunes de todos los enemigos.
+ */
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;

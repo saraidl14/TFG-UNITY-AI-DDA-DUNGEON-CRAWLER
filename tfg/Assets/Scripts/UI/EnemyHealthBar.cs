@@ -1,3 +1,8 @@
+/*  Nombre:      EnemyHealthBar.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       09/04/2026
+ *  Descripcion: Barra de vida flotante sobre los enemigos con lerp suave y cambio de color.
+ */
 using UnityEngine;
 using UnityEngine.UI;
 

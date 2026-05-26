@@ -1,3 +1,8 @@
+/*  Nombre:      PlayerCombat.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       25/03/2026
+ *  Descripcion: Gestiona el combate del jugador: ataque básico, pesado y registro de bajas DDA.
+ */
 using UnityEngine;
 
 /// <summary>
@@ -179,6 +184,12 @@ public class PlayerCombat : MonoBehaviour
         }
         else
         {
+            // Sonido: puño si no hay arma, espada/daga si hay arma
+            if (_equippedWeapon == null)
+                SoundManager.Instance?.PlayPunchHit();
+            else
+                SoundManager.Instance?.PlaySwordHit();
+
             Debug.Log("[PlayerCombat] Ataque basico ejecutado.");
             PerformAttack(basicAttackDamage, basicAttackRange);
         }

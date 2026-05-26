@@ -1,3 +1,8 @@
+/*  Nombre:      SlimeController.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       25/03/2026
+ *  Descripcion: Controlador del Slime: enemigo básico que persigue y ataca al jugador.
+ */
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;

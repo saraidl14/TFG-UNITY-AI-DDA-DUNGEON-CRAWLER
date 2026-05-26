@@ -1,3 +1,8 @@
+/*  Nombre:      PotionData.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       26/05/2026
+ *  Descripcion: ScriptableObject para pociones que restauran vida y aplican buffs temporales.
+ */
 using UnityEngine;
 
 /// <summary>

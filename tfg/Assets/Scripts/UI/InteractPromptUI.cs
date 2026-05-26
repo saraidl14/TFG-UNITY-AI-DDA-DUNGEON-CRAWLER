@@ -1,3 +1,8 @@
+/*  Nombre:      InteractPromptUI.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       21/04/2026
+ *  Descripcion: Prompt de interacción centrado en el HUD, controlado por objetos interactuables.
+ */
 using UnityEngine;
 using TMPro;
 

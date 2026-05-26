@@ -1,3 +1,8 @@
+/*  Nombre:      InventorySlotUI.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       17/04/2026
+ *  Descripcion: Slot clicable y arrastrable del inventario con soporte para drag-and-drop.
+ */
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;

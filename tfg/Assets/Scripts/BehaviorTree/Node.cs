@@ -1,3 +1,8 @@
+/*  Nombre:      Node.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       09/04/2026
+ *  Descripcion: Clase base de los nodos del árbol de comportamiento (BT).
+ */
 using System.Collections;
 using System.Collections.Generic;
 

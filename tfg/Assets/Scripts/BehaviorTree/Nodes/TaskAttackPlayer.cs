@@ -1,3 +1,8 @@
+/*  Nombre:      TaskAttackPlayer.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       09/04/2026
+ *  Descripcion: Acción BT: el enemigo ataca al jugador respetando un cooldown.
+ */
 using UnityEngine;
 using BehaviorTree;
 

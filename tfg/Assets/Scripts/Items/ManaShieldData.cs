@@ -1,3 +1,8 @@
+/*  Nombre:      ManaShieldData.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       21/04/2026
+ *  Descripcion: ScriptableObject para el escudo de maná que otorga invencibilidad temporal.
+ */
 using UnityEngine;
 
 /// <summary>

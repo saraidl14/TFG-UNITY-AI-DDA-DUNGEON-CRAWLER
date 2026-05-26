@@ -1,3 +1,8 @@
+/*  Nombre:      TaskIncreaseDifficulty.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       04/05/2026
+ *  Descripcion: Tarea BT-DDA: sube el nivel de dificultad en el DifficultyManager.
+ */
 using BehaviorTree;
 using UnityEngine;
 

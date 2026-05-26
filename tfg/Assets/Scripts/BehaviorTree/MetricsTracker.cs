@@ -1,3 +1,8 @@
+/*  Nombre:      MetricsTracker.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       08/04/2026
+ *  Descripcion: Registra las métricas de rendimiento del jugador por sala para el sistema DDA.
+ */
 using UnityEngine;
 
 /// <summary>

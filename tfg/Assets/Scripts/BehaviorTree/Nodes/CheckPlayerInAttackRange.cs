@@ -1,3 +1,8 @@
+/*  Nombre:      CheckPlayerInAttackRange.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       09/04/2026
+ *  Descripcion: Condición BT: comprueba si el jugador está en el rango de ataque.
+ */
 using UnityEngine;
 using BehaviorTree;
 

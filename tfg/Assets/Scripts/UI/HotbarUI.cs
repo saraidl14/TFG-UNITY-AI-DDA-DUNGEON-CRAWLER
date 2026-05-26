@@ -1,3 +1,8 @@
+/*  Nombre:      HotbarUI.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       17/04/2026
+ *  Descripcion: Hotbar del HUD con acceso rápido a armas (1-3) y objetos generales (4-6).
+ */
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;

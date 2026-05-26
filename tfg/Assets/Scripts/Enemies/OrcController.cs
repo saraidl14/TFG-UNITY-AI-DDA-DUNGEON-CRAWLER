@@ -1,3 +1,8 @@
+/*  Nombre:      OrcController.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       25/03/2026
+ *  Descripcion: Controlador del Orco: tanque de alto HP y daño que aparece en niveles 6+.
+ */
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;

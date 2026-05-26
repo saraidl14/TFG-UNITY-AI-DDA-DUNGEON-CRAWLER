@@ -1,3 +1,8 @@
+/*  Nombre:      AddRooms.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       26/05/2026
+ *  Descripcion: Registra las salas instanciadas en el generador procedural del dungeon.
+ */
 using System.Collections.Generic;
 using UnityEngine;
 

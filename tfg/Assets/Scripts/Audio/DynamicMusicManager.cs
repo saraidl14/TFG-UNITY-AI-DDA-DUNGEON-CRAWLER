@@ -41,13 +41,22 @@ public class DynamicMusicManager : MonoBehaviour
     // CLIPS Y SOURCES
     // ─────────────────────────────────────────────
     [Header("Clips de musica")]
+    [Tooltip("Musica del menu principal.")]
+    public AudioClip musicMenu;
+
     [Tooltip("Musica normal (jugador con mucha vida).")]
     public AudioClip musicNormal;
 
     [Tooltip("Musica tensa (jugador con poca vida).")]
     public AudioClip musicLowHealth;
 
+    [Tooltip("Musica de la pantalla de créditos.")]
+    public AudioClip musicCredits;
+
     [Header("AudioSources (asignar o se crean automaticamente)")]
+    [Tooltip("AudioSource para la musica del menu.")]
+    public AudioSource audioMenu;
+
     [Tooltip("AudioSource para la musica normal.")]
     public AudioSource audioNormal;
 
@@ -98,21 +107,53 @@ public class DynamicMusicManager : MonoBehaviour
     /// </summary>
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        // Esperar un frame para que el jugador (que se spawnea con la mazmorra) exista
+        StartCoroutine(FindPlayerAndStartMusic(scene.name));
+    }
+
+    private System.Collections.IEnumerator FindPlayerAndStartMusic(string sceneName)
+    {
         playerHealth = null;
-        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-        if (playerObj != null)
-            playerHealth = playerObj.GetComponent<PlayerHealth>();
+
+        // Solo GameScene tiene jugador — en el resto cambiamos música inmediatamente
+        if (sceneName != "GameScene")
+        {
+            if (sceneName == "Credits")
+            {
+                Debug.Log("[DynamicMusicManager] Escena de créditos → música de créditos.");
+                StartCreditsMusic();
+            }
+            else
+            {
+                Debug.Log($"[DynamicMusicManager] Escena '{sceneName}' → música de menú.");
+                StartMenuMusic();
+            }
+            yield break;
+        }
+
+        // GameScene: esperar frame a frame hasta que el jugador se spawne
+        float elapsed = 0f;
+        float timeout = 5f;
+
+        while (playerHealth == null && elapsed < timeout)
+        {
+            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+            if (playerObj != null)
+                playerHealth = playerObj.GetComponent<PlayerHealth>();
+
+            elapsed += Time.unscaledDeltaTime;
+            yield return null;
+        }
 
         if (playerHealth != null)
-            Debug.Log($"[DynamicMusicManager] PlayerHealth encontrado en escena '{scene.name}'.");
-        else
-            Debug.Log($"[DynamicMusicManager] Sin jugador en escena '{scene.name}' (normal en menús).");
-
-        // Reiniciar música si cambiamos a la escena de juego
-        if (playerHealth != null)
+        {
+            Debug.Log($"[DynamicMusicManager] Jugador encontrado ({elapsed:F2}s) → música de juego.");
             StartMusic();
+        }
         else
-            StopMusic();
+        {
+            Debug.LogWarning("[DynamicMusicManager] Jugador no encontrado en GameScene tras 5s.");
+        }
     }
 
     private void Start()
@@ -126,7 +167,10 @@ public class DynamicMusicManager : MonoBehaviour
                 playerHealth = playerObj.GetComponent<PlayerHealth>();
         }
 
-        StartMusic();
+        if (playerHealth != null)
+            StartMusic();
+        else
+            StartMenuMusic();
     }
 
     private void Update()
@@ -138,8 +182,49 @@ public class DynamicMusicManager : MonoBehaviour
     // LOGICA
     // ─────────────────────────────────────────────
 
+    private void StartCreditsMusic()
+    {
+        audioNormal?.Stop();
+        audioLowHealth?.Stop();
+        audioMenu?.Stop();
+
+        if (audioMenu != null && musicCredits != null)
+        {
+            audioMenu.clip   = musicCredits;
+            audioMenu.loop   = true;
+            audioMenu.volume = maxVolume;
+            audioMenu.Play();
+        }
+    }
+
+    private void StartMenuMusic()
+    {
+        // Parar música de juego
+        audioNormal?.Stop();
+        audioLowHealth?.Stop();
+
+        Debug.Log($"[DynamicMusic] StartMenuMusic | audioMenu={audioMenu} | musicMenu={musicMenu} | maxVolume={maxVolume} | AudioListener.volume={AudioListener.volume}");
+
+        // Reproducir música de menú
+        if (audioMenu != null && musicMenu != null)
+        {
+            audioMenu.clip   = musicMenu;
+            audioMenu.loop   = true;
+            audioMenu.volume = maxVolume;
+            audioMenu.Play();
+            Debug.Log($"[DynamicMusic] Reproduciendo '{musicMenu.name}' | isPlaying={audioMenu.isPlaying}");
+        }
+        else
+        {
+            Debug.LogWarning($"[DynamicMusic] No se puede reproducir: audioMenu={audioMenu != null} | musicMenu={musicMenu != null}");
+        }
+    }
+
     private void StartMusic()
     {
+        // Parar música de menú
+        audioMenu?.Stop();
+
         if (audioNormal    != null && musicNormal    != null) { audioNormal.clip    = musicNormal;    audioNormal.loop    = true; audioNormal.Play(); }
         if (audioLowHealth != null && musicLowHealth != null) { audioLowHealth.clip = musicLowHealth; audioLowHealth.loop = true; audioLowHealth.Play(); }
 
@@ -182,6 +267,11 @@ public class DynamicMusicManager : MonoBehaviour
 
     private void EnsureAudioSources()
     {
+        if (audioMenu == null)
+        {
+            audioMenu = gameObject.AddComponent<AudioSource>();
+            audioMenu.playOnAwake = false;
+        }
         if (audioNormal == null)
         {
             audioNormal = gameObject.AddComponent<AudioSource>();

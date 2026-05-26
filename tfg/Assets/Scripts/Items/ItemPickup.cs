@@ -1,3 +1,8 @@
+/*  Nombre:      ItemPickup.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       26/05/2026
+ *  Descripcion: Objeto recogible en el mundo que se añade al inventario al tocarlo.
+ */
 using UnityEngine;
 
 /// <summary>

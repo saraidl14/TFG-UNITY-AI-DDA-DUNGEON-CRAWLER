@@ -1,3 +1,8 @@
+/*  Nombre:      WeaponData.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       17/04/2026
+ *  Descripcion: ScriptableObject abstracto base para todas las armas con stats y durabilidad.
+ */
 using UnityEngine;
 
 /// <summary>

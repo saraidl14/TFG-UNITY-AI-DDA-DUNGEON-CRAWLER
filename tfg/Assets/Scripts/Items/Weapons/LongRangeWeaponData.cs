@@ -1,3 +1,8 @@
+/*  Nombre:      LongRangeWeaponData.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       17/04/2026
+ *  Descripcion: ScriptableObject para armas de largo alcance con proyectil y munición.
+ */
 using UnityEngine;
 
 /// <summary>

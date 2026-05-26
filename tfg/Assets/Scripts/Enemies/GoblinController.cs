@@ -1,3 +1,8 @@
+/*  Nombre:      GoblinController.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       26/05/2026
+ *  Descripcion: Controlador del Goblin: enemigo rápido y agresivo con bajo HP.
+ */
 using System.Collections.Generic;
 using UnityEngine;
 using BehaviorTree;

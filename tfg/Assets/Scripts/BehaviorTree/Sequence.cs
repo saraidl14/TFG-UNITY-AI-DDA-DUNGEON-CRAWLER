@@ -1,3 +1,8 @@
+/*  Nombre:      Sequence.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       09/04/2026
+ *  Descripcion: Nodo Sequence del BT: ejecuta hijos en orden y falla si alguno falla.
+ */
 using System.Collections.Generic;
 
 namespace BehaviorTree

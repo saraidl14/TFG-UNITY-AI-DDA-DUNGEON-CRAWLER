@@ -1,3 +1,8 @@
+/*  Nombre:      InventoryFullPromptUI.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       17/04/2026
+ *  Descripcion: Panel modal que avisa al jugador cuando intenta abrir un cofre con el inventario lleno.
+ */
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;

@@ -1,3 +1,8 @@
+/*  Nombre:      MageController.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       25/03/2026
+ *  Descripcion: Controlador del Mago: enemigo a distancia que huye del cuerpo a cuerpo.
+ */
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;

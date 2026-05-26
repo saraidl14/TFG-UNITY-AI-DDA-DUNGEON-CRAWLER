@@ -1,3 +1,8 @@
+/*  Nombre:      RoomGenerateTemplates.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       24/03/2026
+ *  Descripcion: Genera el dungeon procedural y spawnea enemigos según el nivel DDA.
+ */
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;

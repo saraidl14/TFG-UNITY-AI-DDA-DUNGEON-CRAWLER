@@ -1,3 +1,8 @@
+/*  Nombre:      GameManager.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       25/03/2026
+ *  Descripcion: Gestor central del juego: gestiona muerte del jugador y victoria contra el boss.
+ */
 using UnityEngine;
 
 /// <summary>
@@ -435,12 +440,12 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Carga la escena de Game Over.
-    /// ScoreManager retiene la puntuacion para que la UI la lea.
+    /// Carga la escena de Game Over SIN pantalla de carga para que aparezca inmediatamente.
+    /// La pantalla de carga se usa al hacer Retry desde GameOverUI.
     /// </summary>
     public void LoadGameOverScene()
     {
         Debug.Log($"[GameManager] Cargando escena Game Over: {gameOverSceneName}");
-        SceneLoader.LoadScene(gameOverSceneName);
+        UnityEngine.SceneManagement.SceneManager.LoadScene(gameOverSceneName);
     }
 }

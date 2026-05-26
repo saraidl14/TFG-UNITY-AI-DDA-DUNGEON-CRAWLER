@@ -1,3 +1,8 @@
+/*  Nombre:      Tree.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       09/04/2026
+ *  Descripcion: Clase abstracta base para árboles de comportamiento de enemigos.
+ */
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;

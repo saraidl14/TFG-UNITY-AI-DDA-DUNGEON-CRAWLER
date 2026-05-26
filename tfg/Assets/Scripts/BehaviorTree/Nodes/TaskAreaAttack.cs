@@ -1,3 +1,8 @@
+/*  Nombre:      TaskAreaAttack.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       09/04/2026
+ *  Descripcion: Acción BT: ataque en área cuando el jugador está muy cerca del enemigo.
+ */
 using UnityEngine;
 using BehaviorTree;
 

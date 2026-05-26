@@ -1,3 +1,8 @@
+/*  Nombre:      EnemiesControllers.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       25/03/2026
+ *  Descripcion: Manager de enemigos por sala que aplica el scaling DDA y ejecuta el BT-DDA.
+ */
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;

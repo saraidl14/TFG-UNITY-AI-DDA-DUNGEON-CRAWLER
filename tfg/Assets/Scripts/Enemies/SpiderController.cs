@@ -1,3 +1,8 @@
+/*  Nombre:      SpiderController.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       26/05/2026
+ *  Descripcion: Controlador de la Araña: combina melee y disparo de tela que ralentiza.
+ */
 using System.Collections.Generic;
 using UnityEngine;
 using BehaviorTree;

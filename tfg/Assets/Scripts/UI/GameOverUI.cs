@@ -1,3 +1,8 @@
+/*  Nombre:      GameOverUI.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       17/05/2026
+ *  Descripcion: Pantalla de Game Over que muestra la puntuación y estadísticas de la partida.
+ */
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -116,7 +121,7 @@ public class GameOverUI : MonoBehaviour
         // No tocamos DifficultyManager aqui — el menu llamara a SetStartingDifficulty
         // cuando el jugador elija dificultad de nuevo
 
-        SceneLoader.LoadScene(mainMenuSceneName);
+        UnityEngine.SceneManagement.SceneManager.LoadScene(mainMenuSceneName);
     }
 
     // ─────────────────────────────────────────────

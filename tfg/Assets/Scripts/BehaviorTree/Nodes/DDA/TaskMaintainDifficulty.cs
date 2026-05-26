@@ -1,3 +1,8 @@
+/*  Nombre:      TaskMaintainDifficulty.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       04/05/2026
+ *  Descripcion: Tarea BT-DDA: mantiene el nivel de dificultad actual sin cambios.
+ */
 using BehaviorTree;
 using UnityEngine;
 

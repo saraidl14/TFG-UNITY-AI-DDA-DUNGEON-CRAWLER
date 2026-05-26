@@ -1,3 +1,8 @@
+/*  Nombre:      HotbarSlotUI.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       17/04/2026
+ *  Descripcion: Componente de cada slot del hotbar con referencias a sus elementos UI.
+ */
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;

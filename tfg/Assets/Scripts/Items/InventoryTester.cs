@@ -1,3 +1,8 @@
+/*  Nombre:      InventoryTester.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       26/05/2026
+ *  Descripcion: Script de prueba temporal para añadir ítems al inventario con tecla T.
+ */
 using UnityEngine;
 
 /// <summary>

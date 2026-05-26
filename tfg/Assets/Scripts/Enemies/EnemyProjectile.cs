@@ -1,3 +1,8 @@
+/*  Nombre:      EnemyProjectile.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       26/05/2026
+ *  Descripcion: Proyectil disparado por enemigos que puede aplicar ralentización al jugador.
+ */
 using System.Collections;
 using UnityEngine;
 

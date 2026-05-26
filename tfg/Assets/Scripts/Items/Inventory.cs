@@ -1,3 +1,8 @@
+/*  Nombre:      Inventory.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       17/04/2026
+ *  Descripcion: Inventario singleton del jugador con 9 slots separados en armas y general.
+ */
 using UnityEngine;
 using System;
 

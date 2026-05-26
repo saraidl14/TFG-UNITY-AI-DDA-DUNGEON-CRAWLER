@@ -1,3 +1,8 @@
+/*  Nombre:      TaskPatrol.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       09/04/2026
+ *  Descripcion: Acción BT: el enemigo patrulla aleatoriamente dentro de su radio de sala.
+ */
 using UnityEngine;
 using UnityEngine.AI;
 using BehaviorTree;

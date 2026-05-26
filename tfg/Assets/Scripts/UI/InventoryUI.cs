@@ -1,3 +1,8 @@
+/*  Nombre:      InventoryUI.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       17/04/2026
+ *  Descripcion: Panel de inventario del jugador con selección de slots y panel de detalle.
+ */
 using UnityEngine;
 using TMPro;
 

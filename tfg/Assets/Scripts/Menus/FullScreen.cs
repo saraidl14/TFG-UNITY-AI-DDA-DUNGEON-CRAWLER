@@ -1,5 +1,8 @@
-
-
+/*  Nombre:      FullScreen.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       26/05/2026
+ *  Descripcion: Gestiona las opciones de pantalla completa, VSync y resoluciÃ³n.
+ */
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -14,12 +17,12 @@ public class FullScreen : MonoBehaviour
     Resolution[] resoluciones;
 
     /// <summary>
-    /// El método Start se llama al inicio del juego.
-    /// Dice que si la pantalla está en modo pantalla completa, el toggle de pantalla completa estará activado.
-    /// Si no, estará desactivado.
-    /// En el caso de que la pantalla esté en modo pantalla completa, se revisan las resoluciones disponibles.
-    /// si la calidad de la pantalla está en 0, el toggle de VSync estará desactivado.
-    /// Si no, estará activado.
+    /// El mï¿½todo Start se llama al inicio del juego.
+    /// Dice que si la pantalla estï¿½ en modo pantalla completa, el toggle de pantalla completa estarï¿½ activado.
+    /// Si no, estarï¿½ desactivado.
+    /// En el caso de que la pantalla estï¿½ en modo pantalla completa, se revisan las resoluciones disponibles.
+    /// si la calidad de la pantalla estï¿½ en 0, el toggle de VSync estarï¿½ desactivado.
+    /// Si no, estarï¿½ activado.
     /// </summary>
     void Start()
     {
@@ -80,7 +83,7 @@ public class FullScreen : MonoBehaviour
             }
         }
 
-        resolucionesDropDown.AddOptions(opciones); //añade las opciones al dropdown
+        resolucionesDropDown.AddOptions(opciones); //aï¿½ade las opciones al dropdown
         resolucionesDropDown.value = resolucionActual; //selecciona la resolucion actual
         resolucionesDropDown.RefreshShownValue(); //refresca el dropdown
 

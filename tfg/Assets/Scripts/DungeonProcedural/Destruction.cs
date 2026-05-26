@@ -1,3 +1,8 @@
+/*  Nombre:      Destruction.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       26/05/2026
+ *  Descripcion: Destruye objetos que entren en el trigger excepto al jugador.
+ */
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;

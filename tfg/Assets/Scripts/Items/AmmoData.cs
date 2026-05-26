@@ -1,3 +1,8 @@
+/*  Nombre:      AmmoData.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       26/05/2026
+ *  Descripcion: ScriptableObject para munición stackable consumida al disparar arcos.
+ */
 using UnityEngine;
 
 /// <summary>

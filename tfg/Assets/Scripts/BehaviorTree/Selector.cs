@@ -1,3 +1,8 @@
+/*  Nombre:      Selector.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       09/04/2026
+ *  Descripcion: Nodo Selector del BT: ejecuta hijos hasta que uno tenga éxito.
+ */
 using System.Collections.Generic;
 
 namespace BehaviorTree

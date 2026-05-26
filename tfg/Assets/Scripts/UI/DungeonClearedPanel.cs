@@ -1,3 +1,8 @@
+/*  Nombre:      DungeonClearedPanel.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       08/04/2026
+ *  Descripcion: Panel de mazmorra completada que muestra estadísticas al derrotar al boss.
+ */
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;

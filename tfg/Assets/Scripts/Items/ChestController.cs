@@ -1,3 +1,8 @@
+/*  Nombre:      ChestController.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       17/04/2026
+ *  Descripcion: Controla la apertura de cofres, sorteo de loot y la animación blend shape.
+ */
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -81,6 +86,7 @@ public class ChestController : MonoBehaviour
         _isOpen = true;
 
         InteractPromptUI.Instance?.Hide();
+        SoundManager.Instance?.PlayChestOpen();
 
         // ── 1. Rodar TODO el loot al abrir (guardado para darlo tras la animación) ──
         _pendingLoot.Clear();

@@ -1,3 +1,8 @@
+/*  Nombre:      ChestData.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       17/04/2026
+ *  Descripcion: ScriptableObject que define el tipo de cofre, su rareza y tabla de loot.
+ */
 using UnityEngine;
 
 /// <summary>

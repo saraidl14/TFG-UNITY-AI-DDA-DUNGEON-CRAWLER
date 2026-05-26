@@ -1,3 +1,8 @@
+/*  Nombre:      ShortRangeWeaponData.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       17/04/2026
+ *  Descripcion: ScriptableObject para armas de corto alcance (espadas, dagas).
+ */
 using UnityEngine;
 
 /// <summary>

@@ -113,7 +113,7 @@ public class MainMenu : MonoBehaviour
     public void irAlJuego(string NombreCiudad)
     {
         Time.timeScale = 1.0f;
-        SceneLoader.LoadScene(NombreCiudad);
+        UnityEngine.SceneManagement.SceneManager.LoadScene(NombreCiudad);
     }
 
     public void Continuar()

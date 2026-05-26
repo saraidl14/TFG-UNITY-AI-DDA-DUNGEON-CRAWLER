@@ -1,3 +1,8 @@
+/*  Nombre:      CheckPlayerDetected.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       09/04/2026
+ *  Descripcion: Condición BT: comprueba si el jugador está en el rango de detección.
+ */
 using UnityEngine;
 using BehaviorTree;
 

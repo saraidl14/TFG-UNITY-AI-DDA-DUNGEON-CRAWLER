@@ -1,3 +1,8 @@
+/*  Nombre:      BossController.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       09/04/2026
+ *  Descripcion: Controlador del Boss con dos fases y árbol BT de ataque y persecución.
+ */
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -56,9 +61,11 @@ public class BossController : EnemyBase
     // ─────────────────────────────────────────────
 
     private Node  _btRoot;
-    private bool  _isEnraged = false;
+    private bool  _isEnraged        = false;
+    private bool  _hasGrowled       = false;
     private float _baseDamage;
     private float _baseSpeed;
+    private float _attackAnimEndTime = 0f; // hasta cuando no se cambia Speed (protege la animacion)
 
     /// <summary>Alterna entre Punch (true) y Swipe (false) en cada golpe.</summary>
     private bool _nextAttackIsPunch = true;
@@ -170,6 +177,13 @@ public class BossController : EnemyBase
     {
         if (player == null) return;
 
+        // Gruñido la primera vez que el jugador entra en rango de detección
+        if (!_hasGrowled && Vector3.Distance(transform.position, player.position) <= detectionRange)
+        {
+            _hasGrowled = true;
+            SoundManager.Instance?.PlayBossGrowl();
+        }
+
         float hpRatio = maxHealth > 0f ? currentHealth / maxHealth : 0f;
         _btRoot?.SetData("player",      player);
         _btRoot?.SetData("bossHpRatio", hpRatio);
@@ -203,6 +217,7 @@ public class BossController : EnemyBase
 
         _animator.SetTrigger(_nextAttackIsPunch ? HashPunch : HashSwipe);
         _nextAttackIsPunch = !_nextAttackIsPunch;
+        _attackAnimEndTime = Time.time + 1.5f; // bloquea Speed durante ~duración de la animación
     }
 
     /// <summary>
@@ -219,11 +234,13 @@ public class BossController : EnemyBase
         if (canJump)
         {
             _animator.SetTrigger(HashJumpAttack);
+            _attackAnimEndTime = Time.time + 2f; // JumpAttack dura más
         }
         else
         {
             _animator.SetTrigger(_nextAttackIsPunch ? HashPunch : HashSwipe);
             _nextAttackIsPunch = !_nextAttackIsPunch;
+            _attackAnimEndTime = Time.time + 1.5f;
         }
     }
 
@@ -236,8 +253,12 @@ public class BossController : EnemyBase
     {
         if (_animator == null || player == null) return;
 
-        float dist    = Vector3.Distance(transform.position, player.position);
-        bool chasing  = dist > attackRange && dist <= detectionRange;
+        // No cambiar Speed mientras una animación de ataque está en curso
+        // para evitar que el knockback interrumpa el ataque al alejar al boss
+        if (Time.time < _attackAnimEndTime) return;
+
+        float dist   = Vector3.Distance(transform.position, player.position);
+        bool chasing = dist > attackRange && dist <= detectionRange;
 
         _animator.SetFloat(HashSpeed, chasing ? 1f : 0f);
     }

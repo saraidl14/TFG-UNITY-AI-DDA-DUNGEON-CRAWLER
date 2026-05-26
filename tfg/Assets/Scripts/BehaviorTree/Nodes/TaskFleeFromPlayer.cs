@@ -1,3 +1,8 @@
+/*  Nombre:      TaskFleeFromPlayer.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       09/04/2026
+ *  Descripcion: Acción BT: el enemigo retrocede alejándose del jugador con NavMeshAgent.
+ */
 using UnityEngine;
 using UnityEngine.AI;
 using BehaviorTree;
