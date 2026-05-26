@@ -219,10 +219,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
   m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3
@@ -321,7 +321,7 @@ MonoBehaviour:
     enemigos eliminados."
   - "Encadenar varias salas perfectas consecutivas multiplica tu bonus de puntuaci\xF3n."
   - "El rango final va de D a S+. \xBFPuedes conseguir una S?"
-  minLoadingTime: 10
+  minDisplayTime: 0.5
 --- !u!1 &31405341
 GameObject:
   m_ObjectHideFlags: 0
@@ -478,6 +478,7 @@ GameObject:
   - component: {fileID: 35898694}
   - component: {fileID: 35898693}
   - component: {fileID: 35898692}
+  - component: {fileID: 35898695}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -559,6 +560,15 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!45 &35898695
+Skybox:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 35898691}
+  m_Enabled: 1
+  m_CustomSkybox: {fileID: 2100000, guid: f531e09e2ad2fb440b4eed7605863143, type: 2}
 --- !u!1001 &48127214
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4127,6 +4137,95 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1226507855}
   m_CullTransparentMesh: 1
+--- !u!1001 &1328284308
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 4101845806692330563, guid: 7cd730c058125904aac475992b8e3885, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 1232.515
+      objectReference: {fileID: 0}
+    - target: {fileID: 4101845806692330563, guid: 7cd730c058125904aac475992b8e3885, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 152.3766
+      objectReference: {fileID: 0}
+    - target: {fileID: 4101845806692330563, guid: 7cd730c058125904aac475992b8e3885, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -1.1553353
+      objectReference: {fileID: 0}
+    - target: {fileID: 4101845806692330563, guid: 7cd730c058125904aac475992b8e3885, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4101845806692330563, guid: 7cd730c058125904aac475992b8e3885, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4101845806692330563, guid: 7cd730c058125904aac475992b8e3885, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4101845806692330563, guid: 7cd730c058125904aac475992b8e3885, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4101845806692330563, guid: 7cd730c058125904aac475992b8e3885, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4101845806692330563, guid: 7cd730c058125904aac475992b8e3885, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4101845806692330563, guid: 7cd730c058125904aac475992b8e3885, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4446667462961552052, guid: 7cd730c058125904aac475992b8e3885, type: 3}
+      propertyPath: sfxVolume
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4446667462961552052, guid: 7cd730c058125904aac475992b8e3885, type: 3}
+      propertyPath: footstepVolume
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4446667462961552052, guid: 7cd730c058125904aac475992b8e3885, type: 3}
+      propertyPath: footstepInterval
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4446667462961552052, guid: 7cd730c058125904aac475992b8e3885, type: 3}
+      propertyPath: footsteps.Array.data[0]
+      value: 
+      objectReference: {fileID: 8300000, guid: d6c795ed7178cfa4e8c9f58a72eca179, type: 3}
+    - target: {fileID: 4969122963515801884, guid: 7cd730c058125904aac475992b8e3885, type: 3}
+      propertyPath: m_Name
+      value: SoundManager
+      objectReference: {fileID: 0}
+    - target: {fileID: 6473161021512029866, guid: 7cd730c058125904aac475992b8e3885, type: 3}
+      propertyPath: audioMenu
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 6473161021512029866, guid: 7cd730c058125904aac475992b8e3885, type: 3}
+      propertyPath: maxVolume
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6473161021512029866, guid: 7cd730c058125904aac475992b8e3885, type: 3}
+      propertyPath: musicNormal
+      value: 
+      objectReference: {fileID: 8300000, guid: 2f489b2b74117cc429ed143194967e8f, type: 3}
+    - target: {fileID: 6473161021512029866, guid: 7cd730c058125904aac475992b8e3885, type: 3}
+      propertyPath: musicCredits
+      value: 
+      objectReference: {fileID: 8300000, guid: 44a3f159331ba2a4caa05ad0d6a12742, type: 3}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 7cd730c058125904aac475992b8e3885, type: 3}
 --- !u!1 &1345121929
 GameObject:
   m_ObjectHideFlags: 0
@@ -6046,16 +6145,16 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: 
-        m_Mode: 1
+      - m_Target: {fileID: 7780941030533861033}
+        m_TargetAssemblyTypeName: MainMenu, Assembly-CSharp
+        m_MethodName: irAlJuego
+        m_Mode: 5
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: 
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: 
+          m_StringArgument: Credits
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &2035098350
@@ -6509,3 +6608,4 @@ SceneRoots:
   - {fileID: 696312837}
   - {fileID: 1553980683}
   - {fileID: 23144656}
+  - {fileID: 1328284308}
