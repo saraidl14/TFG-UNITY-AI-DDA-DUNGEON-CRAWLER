@@ -24,6 +24,7 @@
  */
 
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Gestor de musica dinamica: hace crossfade entre dos pistas segun
@@ -88,17 +89,42 @@ public class DynamicMusicManager : MonoBehaviour
         EnsureAudioSources();
     }
 
+    private void OnEnable()  => SceneManager.sceneLoaded += OnSceneLoaded;
+    private void OnDisable() => SceneManager.sceneLoaded -= OnSceneLoaded;
+
+    /// <summary>
+    /// Al cargar una nueva escena, re-busca el PlayerHealth por si el jugador
+    /// es un objeto nuevo (la escena de juego lo genera de nuevo cada vez).
+    /// </summary>
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        playerHealth = null;
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj != null)
+            playerHealth = playerObj.GetComponent<PlayerHealth>();
+
+        if (playerHealth != null)
+            Debug.Log($"[DynamicMusicManager] PlayerHealth encontrado en escena '{scene.name}'.");
+        else
+            Debug.Log($"[DynamicMusicManager] Sin jugador en escena '{scene.name}' (normal en menús).");
+
+        // Reiniciar música si cambiamos a la escena de juego
+        if (playerHealth != null)
+            StartMusic();
+        else
+            StopMusic();
+    }
+
     private void Start()
     {
+        // La búsqueda inicial también se hace vía OnSceneLoaded,
+        // pero por si Start() corre antes del primer evento lo hacemos aquí también.
         if (playerHealth == null)
         {
             GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
             if (playerObj != null)
                 playerHealth = playerObj.GetComponent<PlayerHealth>();
         }
-
-        if (playerHealth == null)
-            Debug.LogWarning("[DynamicMusicManager] PlayerHealth no encontrado. La musica no cambiara con la vida.");
 
         StartMusic();
     }

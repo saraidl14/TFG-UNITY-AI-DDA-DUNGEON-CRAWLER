@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;
 using TMPro;
 
 /// <summary>
@@ -107,7 +106,7 @@ public class GameOverUI : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible   = false;
 
-        SceneManager.LoadScene(gameSceneName);
+        SceneLoader.LoadScene(gameSceneName);
     }
 
     private void OnMainMenu()
@@ -117,7 +116,7 @@ public class GameOverUI : MonoBehaviour
         // No tocamos DifficultyManager aqui — el menu llamara a SetStartingDifficulty
         // cuando el jugador elija dificultad de nuevo
 
-        SceneManager.LoadScene(mainMenuSceneName);
+        SceneLoader.LoadScene(mainMenuSceneName);
     }
 
     // ─────────────────────────────────────────────

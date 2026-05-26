@@ -33,9 +33,11 @@ public class PlayerAnimator : MonoBehaviour
     // ─────────────────────────────────────────────
     // HASHES (mas eficiente que strings en Update)
     // ─────────────────────────────────────────────
-    private static readonly int HashSpeed      = Animator.StringToHash("Speed");
-    private static readonly int HashWeaponType = Animator.StringToHash("WeaponType");
-    private static readonly int HashAttack     = Animator.StringToHash("Attack");
+    private static readonly int HashSpeed       = Animator.StringToHash("Speed");
+    private static readonly int HashWeaponType  = Animator.StringToHash("WeaponType");
+    private static readonly int HashAttack      = Animator.StringToHash("Attack");
+    private static readonly int HashPunchTrigger = Animator.StringToHash("PunchTrigger");
+    private bool _nextIsRight = true;
 
     // ─────────────────────────────────────────────
     // REFERENCIAS
@@ -95,10 +97,21 @@ public class PlayerAnimator : MonoBehaviour
 
     /// <summary>
     /// Dispara el trigger Attack del Animator.
-    /// Llamar desde PlayerCombat al ejecutar un ataque.
+    /// Sin arma: alterna punch derecho / izquierdo en cada llamada (combo).
+    /// Con arma: usa la animación correspondiente al arma.
     /// </summary>
     public void TriggerAttack()
     {
-        _animator.SetTrigger(HashAttack);
+        bool unarmed = _combat == null || _combat.EquippedWeapon == null;
+        if (unarmed)
+        {
+            string state = _nextIsRight ? "punch" : "punchizq";
+            _nextIsRight = !_nextIsRight;
+            _animator.CrossFade(state, 0.05f, 0, 0f);
+        }
+        else
+        {
+            _animator.SetTrigger(HashAttack);
+        }
     }
 }

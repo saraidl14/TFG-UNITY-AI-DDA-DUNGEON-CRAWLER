@@ -62,11 +62,34 @@ public class MetricsTracker : MonoBehaviour
     private bool currentRoomWasPerfect = true;
 
     // ─────────────────────────────────────────────
-    // TIMER DE SALA
+    // TIMER DE SALA (por sala, se resetea — usado por DDA)
+    // ─────────────────────────────────────────────
+    private bool timerRunning = false;
+
+    // ─────────────────────────────────────────────
+    // TIMER TOTAL DE DUNGEON (arranque → jefe muerto)
     // ─────────────────────────────────────────────
 
-    /// <summary>True mientras el timer de sala esta activo.</summary>
-    private bool timerRunning = false;
+    /// <summary>Tiempo total acumulado desde que arrancó el dungeon hasta que murió el jefe.</summary>
+    public float TotalRunTime { get; private set; } = 0f;
+    private bool _dungeonTimerRunning = false;
+
+    /// <summary>Inicia el cronómetro total del dungeon. Llamar al generar la mazmorra.</summary>
+    public void StartDungeonTimer()
+    {
+        TotalRunTime          = 0f;
+        _dungeonTimerRunning  = true;
+        Debug.Log("[MetricsTracker] Cronómetro de dungeon iniciado.");
+    }
+
+    /// <summary>Para el cronómetro total y registra el tiempo final. Llamar cuando el jefe muere.</summary>
+    public void StopDungeonTimer()
+    {
+        _dungeonTimerRunning = false;
+        int min = Mathf.FloorToInt(TotalRunTime / 60f);
+        int sec = Mathf.FloorToInt(TotalRunTime % 60f);
+        Debug.Log($"[MetricsTracker] ¡Jefe derrotado! Tiempo total: {min:00}:{sec:00}  ({TotalRunTime:F1}s)");
+    }
 
     // ─────────────────────────────────────────────
     // CICLO DE VIDA
@@ -76,6 +99,9 @@ public class MetricsTracker : MonoBehaviour
     {
         if (timerRunning)
             TimeTaken += Time.deltaTime;
+
+        if (_dungeonTimerRunning)
+            TotalRunTime += Time.deltaTime;
     }
 
     // ─────────────────────────────────────────────

@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Gestor central del juego. Singleton persistente entre escenas.
@@ -432,7 +431,7 @@ public class GameManager : MonoBehaviour
             MetricsTracker.Instance.ResetStreak(); // La racha perfecta empieza de cero en cada mazmorra
         }
 
-        SceneManager.LoadScene(gameSceneName);
+        SceneLoader.LoadScene(gameSceneName);
     }
 
     /// <summary>
@@ -442,6 +441,6 @@ public class GameManager : MonoBehaviour
     public void LoadGameOverScene()
     {
         Debug.Log($"[GameManager] Cargando escena Game Over: {gameOverSceneName}");
-        SceneManager.LoadScene(gameOverSceneName);
+        SceneLoader.LoadScene(gameOverSceneName);
     }
 }

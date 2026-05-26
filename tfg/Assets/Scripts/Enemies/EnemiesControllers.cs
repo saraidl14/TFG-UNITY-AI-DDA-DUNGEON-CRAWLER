@@ -89,6 +89,10 @@ public class EnemiesControllers : MonoBehaviour
     {
         if (_ddaEvaluatedThisRoom) return;
         _ddaEvaluatedThisRoom = true;
+
+        // Parar el cronómetro total — el jefe ha muerto
+        MetricsTracker.Instance?.StopDungeonTimer();
+
         OnRoomCleared();
     }
 
@@ -144,12 +148,35 @@ public class EnemiesControllers : MonoBehaviour
     // ─────────────────────────────────────────────
 
     /// <summary>
+    /// Llamado desde RoomTrigger cuando una sala individual queda limpia.
+    /// Dispara el DDA por sala y resetea el timer para la siguiente.
+    /// </summary>
+    public void NotifyRoomCleared(int enemyCountInRoom = 0)
+    {
+        if (_ddaEvaluatedThisRoom) return;
+        _ddaEvaluatedThisRoom = true;
+
+        // Usar el conteo de la sala si se proporciona; si no, el global
+        if (enemyCountInRoom > 0) _roomNormalEnemyCount = enemyCountInRoom;
+
+        OnRoomCleared();
+    }
+
+    // ─────────────────────────────────────────────
+    // EVENTO SALA LIMPIA (para puertas, UI, etc.)
+    // ─────────────────────────────────────────────
+
+    /// <summary>Se dispara cuando el último enemigo de la sala muere. Las puertas se suscriben a esto.</summary>
+    public static event System.Action OnRoomClearedEvent;
+
+    /// <summary>
     /// Llamado automaticamente cuando el ultimo enemigo muere.
     /// Cierra metricas de la sala, ejecuta el arbol BT-DDA y notifica al GameManager.
     /// </summary>
     private void OnRoomCleared()
     {
         Debug.Log("[EnemiesControllers] Sala limpia.");
+        OnRoomClearedEvent?.Invoke();
 
         // ── Bonus de limpieza por matar a todos los enemigos normales ──
         // Formula: 20 * n_enemigos + 300 de bonus por limpieza total
@@ -223,12 +250,15 @@ public class EnemiesControllers : MonoBehaviour
         // Evaluar
         ddaTree.Evaluate();
 
-        // Resetear metricas para la siguiente sala
+        // Resetear metricas y flag para la siguiente sala
         if (MetricsTracker.Instance != null)
+        {
             MetricsTracker.Instance.ResetRoomMetrics();
-
-        if (MetricsTracker.Instance != null)
             MetricsTracker.Instance.StartRoomTimer();
+        }
+
+        _ddaEvaluatedThisRoom  = false;   // permite que la próxima sala dispare el DDA
+        _roomNormalEnemyCount  = 0;
     }
 
     /// <summary>Crea una rama Sequence: CheckScoreThreshold + Task(Increase/Decrease).</summary>

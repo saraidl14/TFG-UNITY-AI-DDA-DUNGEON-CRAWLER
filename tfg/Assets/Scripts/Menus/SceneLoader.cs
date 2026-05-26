@@ -1,25 +1,12 @@
 /*  Nombre:      SceneLoader.cs
  *  Autor:       Sara Iglesias
- *  Fecha:       12/05/2026
- *  Descripcion: Carga de escenas asincrona con pantalla de carga.
- *               Sustituye a SceneManager.LoadScene() en toda la aplicacion.
- *
- *  SETUP EN UNITY:
- *    1. Crear una escena llamada "LoadingScreen" (o el nombre que se ponga en
- *       loadingSceneName) y añadirla a Build Settings.
- *    2. En esa escena crear un Canvas con:
- *         LoadingRoot  (Image fondo oscuro, este script o vacío)
- *         └─ ProgressBar  (Slider)  → asignar a 'progressBar'
- *         └─ LoadingText  (TMP_Text) → asignar a 'loadingText'  (opcional)
- *    3. Añadir este script como componente en esa escena de carga
- *       (o en un objeto persistente).
- *
+ *  Fecha:       25/05/2026
+ *  Descripcion: Pantalla de carga mediante un panel DontDestroyOnLoad.
+ *               NO necesita escena separada.
+ *               Carga la escena destino en background, muestra progreso y consejos.
  *  USO DESDE CÓDIGO:
- *    // En lugar de: SceneManager.LoadScene("GameScene");
- *    // Usar:        SceneLoader.LoadScene("GameScene");
- *
- *    // O con callback al terminar:
- *    SceneLoader.LoadScene("GameScene", () => Debug.Log("Cargado"));
+ *    SceneLoader.LoadScene("GameScene");
+ *    SceneLoader.LoadScene("MainMenu", () => Debug.Log("Listo"));
  */
 
 using System;
@@ -29,10 +16,6 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
 
-/// <summary>
-/// Carga de escenas asincrona con pantalla de transicion.
-/// Singleton persistente: se crea automaticamente la primera vez que se usa.
-/// </summary>
 public class SceneLoader : MonoBehaviour
 {
     // ─────────────────────────────────────────────
@@ -45,105 +28,157 @@ public class SceneLoader : MonoBehaviour
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         DontDestroyOnLoad(gameObject);
+
+        if (loadingPanel != null) loadingPanel.SetActive(false);
     }
 
     // ─────────────────────────────────────────────
-    // CONFIGURACIÓN
+    // REFERENCIAS UI
     // ─────────────────────────────────────────────
-    [Header("Escena de carga intermedia (debe estar en Build Settings)")]
-    [Tooltip("Nombre exacto de la escena usada como pantalla de carga.")]
-    public string loadingSceneName = "LoadingScreen";
+    [Header("Panel que cubre la pantalla durante la carga (empieza DESACTIVADO)")]
+    public GameObject loadingPanel;
 
-    [Header("UI de progreso (asignar desde la escena de carga)")]
-    [Tooltip("Slider que muestra el progreso de carga (0-1).")]
+    [Header("Barra de progreso")]
     public Slider progressBar;
 
-    [Tooltip("Texto TMP opcional que muestra el porcentaje.")]
+    [Header("Texto de porcentaje  (opcional)")]
     public TMP_Text loadingText;
 
-    [Header("Tiempo minimo de pantalla de carga (segundos)")]
-    [Tooltip("Evita que la pantalla de carga parpadee si la escena carga muy rapido.")]
-    public float minLoadingTime = 0.5f;
+    [Header("Texto de consejos  (opcional)")]
+    public TMP_Text tipText;
+
+    // ─────────────────────────────────────────────
+    // CONSEJOS
+    // ─────────────────────────────────────────────
+    [Header("Consejos que aparecen durante la carga")]
+    [TextArea(2, 4)]
+    public string[] tips = new string[]
+    {
+        // ── Controles básicos ──
+        "Mantén el botón derecho del ratón (RMB) para apuntar con el arco.",
+        "Pulsa LMB para atacar con la espada y RMB + LMB para disparar una flecha.",
+        "El dash (Espacio) te permite esquivar ataques en el último momento.",
+        "Pulsa E para interactuar con puertas, cofres y otros objetos del entorno.",
+        "Abre el inventario con Tab para gestionar tus objetos y equipar armas.",
+
+        // ── Combate ──
+        "Derrota a todos los enemigos de una sala para desbloquear sus puertas.",
+        "Los slimes son lentos pero golpean fuerte: usa el dash para esquivarlos.",
+        "Encadena golpes de espada y luego retrocede antes de que contraataquen.",
+        "Usa el arco para atacar a distancia antes de que los enemigos lleguen a ti.",
+        "El jefe final tiene más vida y hace más daño que los enemigos normales. ¡Prepárate!",
+
+        // ── Exploración y objetos ──
+        "Los cofres contienen armas, pociones y objetos útiles. ¡Ábrelos todos!",
+        "Usa las pociones de salud cuando estés por debajo del 30% de vida.",
+        "Guardar las pociones para el final puede costarte la partida. Úsalas cuando las necesites.",
+        "Cada mazmorra es generada de forma procedural: ningún recorrido será igual.",
+
+        // ── Sistema DDA ──
+        "Cuanto más rápido y limpio juegues, más subirá la dificultad automáticamente.",
+        "Si recibes mucho daño o mueres, la dificultad bajará para equilibrar la partida.",
+        "El sistema de dificultad dinámica aprende de tu estilo de juego en cada sala.",
+        "Completar una sala sin recibir ningún daño te da un bonus de sala perfecta.",
+
+        // ── Speedrun / eficiencia ──
+        "Cuanto antes mates al jefe, mejor será tu puntuación final.",
+        "Limpiar una sala muy rápido aumenta tu puntuación y sube la dificultad más deprisa.",
+        "No pierdas tiempo en salas ya limpias: las puertas siguen abiertas al volver.",
+        "Planifica tu ruta desde el inicio: la sala del jefe suele estar al fondo de la mazmorra.",
+
+        // ── Puntuación ──
+        "Tu puntuación depende del tiempo, el daño recibido, las muertes y los enemigos eliminados.",
+        "Encadenar varias salas perfectas consecutivas multiplica tu bonus de puntuación.",
+        "El rango final va de D a S+. ¿Puedes conseguir una S?",
+    };
+
+    [Header("Tiempo mínimo visible (evita parpadeo en máquinas muy rápidas)")]
+    public float minDisplayTime = 0.5f;
 
     // ─────────────────────────────────────────────
     // ESTADO
     // ─────────────────────────────────────────────
-    private static string    _targetScene;
-    private static Action     _onLoaded;
+    private static string _targetScene;
+    private static Action  _onLoaded;
 
     // ─────────────────────────────────────────────
     // API ESTÁTICA
     // ─────────────────────────────────────────────
 
     /// <summary>
-    /// Inicia la carga asincrona de la escena indicada mostrando una
-    /// pantalla de carga intermedia.
+    /// Carga la escena mostrando el panel de carga encima de la pantalla actual.
+    /// No necesita escena separada.
     /// </summary>
-    /// <param name="sceneName">Nombre de la escena destino.</param>
-    /// <param name="onLoaded">Callback opcional al terminar la carga.</param>
     public static void LoadScene(string sceneName, Action onLoaded = null)
     {
         _targetScene = sceneName;
         _onLoaded    = onLoaded;
 
-        // Restaurar timeScale por si se llama desde pausa
-        Time.timeScale   = 1f;
-        Cursor.visible   = true;
-        Cursor.lockState = CursorLockMode.None;
-
-        // Si hay instancia singleton, usarla; si no, cargar directamente
         if (Instance != null)
-            Instance.StartCoroutine(Instance.LoadViaLoadingScreen());
+            Instance.StartCoroutine(Instance.LoadWithPanel());
         else
-            SceneManager.LoadScene(sceneName); // fallback sin pantalla de carga
+            SceneManager.LoadScene(sceneName); // fallback si no hay instancia
     }
 
     // ─────────────────────────────────────────────
-    // CORRUTINA DE CARGA
+    // CORRUTINA PRINCIPAL
     // ─────────────────────────────────────────────
 
-    private IEnumerator LoadViaLoadingScreen()
+    private IEnumerator LoadWithPanel()
     {
-        // 1. Cargar la escena de carga de forma sincrona (es muy ligera)
-        SceneManager.LoadScene(loadingSceneName);
-        yield return null; // esperar un frame para que la escena se active
+        // 1. Mostrar panel
+        if (loadingPanel != null) loadingPanel.SetActive(true);
+        if (progressBar  != null) progressBar.value = 0f;
+        if (loadingText  != null) loadingText.text  = "Cargando... 0%";
+        ShowRandomTip();
 
-        // 2. Buscar la UI de progreso en la nueva escena (por si está en otro objeto)
-        if (progressBar == null)
-            progressBar = FindObjectOfType<Slider>();
-        if (loadingText == null)
-            loadingText = FindObjectOfType<TMP_Text>();
+        yield return null; // un frame para que el panel aparezca
 
-        // 3. Iniciar la carga asíncrona de la escena destino
-        float   startTime = Time.realtimeSinceStartup;
+        // 2. Iniciar carga asíncrona — la duración la decide el hardware, no un timer fijo
         AsyncOperation async = SceneManager.LoadSceneAsync(_targetScene);
-
-        // No activar la escena hasta que esté lista y haya pasado el tiempo mínimo
         async.allowSceneActivation = false;
 
-        while (!async.isDone)
+        // 3. Animar la barra siguiendo el progreso REAL de carga
+        //    - Máquina lenta → async.progress sube despacio → barra tarda más
+        //    - Máquina rápida → async.progress sube rápido → barra termina antes
+        //    - Lerp suaviza visualmente los saltos bruscos de progreso
+        float shown   = 0f;
+        float elapsed = 0f;
+
+        while (async.progress < 0.9f || shown < 0.99f || elapsed < minDisplayTime)
         {
-            // El progreso llega hasta 0.9 antes de activar la escena
-            float progress = Mathf.Clamp01(async.progress / 0.9f);
-
-            if (progressBar != null) progressBar.value = progress;
-            if (loadingText  != null) loadingText.text  = $"Cargando... {(int)(progress * 100f)}%";
-
-            // Activar cuando esté cargada Y haya pasado el tiempo mínimo
-            bool minTimePassed = (Time.realtimeSinceStartup - startTime) >= minLoadingTime;
-            if (async.progress >= 0.9f && minTimePassed)
-            {
-                if (progressBar != null) progressBar.value = 1f;
-                if (loadingText  != null) loadingText.text  = "Cargando... 100%";
-                yield return new WaitForSecondsRealtime(0.1f); // pequeña pausa visual
-                async.allowSceneActivation = true;
-            }
-
+            elapsed += Time.unscaledDeltaTime;
+            float real = Mathf.Clamp01(async.progress / 0.9f);
+            shown = Mathf.Lerp(shown, real, Time.unscaledDeltaTime * 3f);
+            SetProgress(shown);
             yield return null;
         }
+        SetProgress(1f);
 
-        // 4. Llamar al callback si existe
+        // 4. Activar la escena
+        async.allowSceneActivation = true;
+        while (!async.isDone)
+            yield return null;
+
+        // 6. Ocultar panel
+        if (loadingPanel != null) loadingPanel.SetActive(false);
         _onLoaded?.Invoke();
         _onLoaded = null;
+    }
+
+    // ─────────────────────────────────────────────
+    // HELPERS
+    // ─────────────────────────────────────────────
+
+    private void SetProgress(float value)
+    {
+        if (progressBar != null) progressBar.value = value;
+        if (loadingText  != null) loadingText.text  = $"Cargando... {(int)(value * 100f)}%";
+    }
+
+    private void ShowRandomTip()
+    {
+        if (tipText == null || tips == null || tips.Length == 0) return;
+        tipText.text = tips[UnityEngine.Random.Range(0, tips.Length)];
     }
 }

@@ -135,7 +135,10 @@ public class RoomGenerateTemplates : MonoBehaviour
         SpawnHelps();
 
         if (MetricsTracker.Instance != null)
+        {
             MetricsTracker.Instance.StartRoomTimer();
+            MetricsTracker.Instance.StartDungeonTimer();   // cronómetro total hasta el jefe
+        }
     }
 
     // ─────────────────────────────────────────────

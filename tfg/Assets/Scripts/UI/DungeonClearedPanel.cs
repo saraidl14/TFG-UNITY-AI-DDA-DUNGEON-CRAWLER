@@ -311,7 +311,7 @@ public class DungeonClearedPanel : MonoBehaviour
         if (DifficultyManager.Instance != null) DifficultyManager.Instance.currentLevel = 1;
         if (GameManager.Instance       != null) GameManager.Instance.ResetSpeedBoost();
 
-        UnityEngine.SceneManagement.SceneManager.LoadScene(mainMenuSceneName);
+        SceneLoader.LoadScene(mainMenuSceneName);
     }
 
     private void OnHardcoreSi()
