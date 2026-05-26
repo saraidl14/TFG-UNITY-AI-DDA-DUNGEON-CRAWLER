@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c797805624024ed408c7baec4c8fe12f, type: 3}
   m_Name: Espada Epica
   m_EditorClassIdentifier: 
-  itemName: Espada Comun
+  itemName: Espada Epica
   icon: {fileID: 1877796086, guid: 3fd88cc3dacaeca4fa060aeea3b025f4, type: 3}
-  description: Una espada desgastada y poco afilada
+  description: Una espada que ha regido varias batallas
   itemType: 0
   stackable: 0
   maxStack: 1

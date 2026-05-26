@@ -87,8 +87,8 @@ public class EnemiesControllers : MonoBehaviour
     private bool _ddaEvaluatedThisRoom = false;
 
     /// <summary>
-    /// Llamado directamente desde BossController.Die() para garantizar que el DDA
-    /// se evalua al morir el boss, independientemente de si quedan enemigos normales vivos.
+    /// Llamado directamente desde BossController.Die().
+    /// Evalua el DDA con las metricas acumuladas de TODA la mazmorra.
     /// </summary>
     public void TriggerBossDDA()
     {
@@ -98,7 +98,28 @@ public class EnemiesControllers : MonoBehaviour
         // Parar el cronómetro total — el jefe ha muerto
         MetricsTracker.Instance?.StopDungeonTimer();
 
-        OnRoomCleared();
+        // Abrir puertas y dar bonus de limpieza de la ultima sala
+        OnRoomClearedEvent?.Invoke();
+        if (_roomNormalEnemyCount > 0 && GameManager.Instance != null)
+        {
+            int clearBonus = 20 * _roomNormalEnemyCount + 300;
+            GameManager.Instance.AddCoins(clearBonus);
+        }
+        _roomNormalEnemyCount = 0;
+
+        // Capturar HP final del jugador
+        if (MetricsTracker.Instance != null)
+        {
+            PlayerHealth ph = FindObjectOfType<PlayerHealth>();
+            float hpNow = ph != null ? ph.GetCurrentHealth() : 50f;
+            MetricsTracker.Instance.CloseRoom(hpNow);
+        }
+
+        // Evaluar DDA con metricas de TODA la mazmorra y ejecutar BT
+        if (DifficultyManager.Instance != null)
+            DifficultyManager.Instance.EvaluateDifficulty();
+
+        EvaluateDDATree();
     }
 
     // ─────────────────────────────────────────────
@@ -184,32 +205,17 @@ public class EnemiesControllers : MonoBehaviour
         OnRoomClearedEvent?.Invoke();
 
         // ── Bonus de limpieza por matar a todos los enemigos normales ──
-        // Formula: 20 * n_enemigos + 300 de bonus por limpieza total
         if (_roomNormalEnemyCount > 0 && GameManager.Instance != null)
         {
             int clearBonus = 20 * _roomNormalEnemyCount + 300;
             GameManager.Instance.AddCoins(clearBonus);
-            Debug.Log($"[EnemiesControllers] Bonus limpieza: +{clearBonus} monedas " +
-                      $"(20x{_roomNormalEnemyCount} enemigos + 300)");
+            Debug.Log($"[EnemiesControllers] Bonus limpieza: +{clearBonus} monedas.");
         }
         _roomNormalEnemyCount = 0;
 
-        // Cerrar metricas (guarda HP restante y detiene el timer)
-        if (MetricsTracker.Instance != null)
-        {
-            PlayerHealth ph = FindObjectOfType<PlayerHealth>();
-            // Si no se encuentra al jugador usamos 50 como valor neutro (no penaliza ni bonifica)
-            // para evitar que un null reference hunda el score DDA injustamente
-            float hpNow = ph != null ? ph.GetCurrentHealth() : 50f;
-            MetricsTracker.Instance.CloseRoom(hpNow);
-        }
-
-        // Evaluar DDA y ajustar dificultad
-        if (DifficultyManager.Instance != null)
-            DifficultyManager.Instance.EvaluateDifficulty();
-
-        // Ejecutar arbol BT-DDA con los umbrales v2.0
-        EvaluateDDATree();
+        // Las metricas NO se evaluan ni resetean aqui —
+        // se acumulan durante toda la mazmorra y se evaluan al morir el boss.
+        _ddaEvaluatedThisRoom = false; // permite que la siguiente sala registre enemigos
     }
 
     // ─────────────────────────────────────────────
@@ -255,15 +261,10 @@ public class EnemiesControllers : MonoBehaviour
         // Evaluar
         ddaTree.Evaluate();
 
-        // Resetear metricas y flag para la siguiente sala
-        if (MetricsTracker.Instance != null)
-        {
-            MetricsTracker.Instance.ResetRoomMetrics();
-            MetricsTracker.Instance.StartRoomTimer();
-        }
-
-        _ddaEvaluatedThisRoom  = false;   // permite que la próxima sala dispare el DDA
-        _roomNormalEnemyCount  = 0;
+        // Las metricas se resetean al inicio de la SIGUIENTE mazmorra (RoomGenerateTemplates)
+        // NO aqui — para que EvaluateAndApplyImmediate (Game Over) las pueda leer si el jugador muere
+        _ddaEvaluatedThisRoom = false;
+        _roomNormalEnemyCount = 0;
     }
 
     /// <summary>Crea una rama Sequence: CheckScoreThreshold + Task(Increase/Decrease).</summary>

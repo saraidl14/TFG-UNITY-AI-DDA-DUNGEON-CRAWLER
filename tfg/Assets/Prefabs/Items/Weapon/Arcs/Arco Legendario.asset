@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemName: 'Arco '
   icon: {fileID: 21300000, guid: bf0197d08b4d09645980b6e5feed7509, type: 3}
-  description: Arco a punto de romperse.
+  description: "Arco a legendario se dice que un gran elfo lo us\xF3 durante incansables
+    batallas"
   itemType: 0
   stackable: 0
   maxStack: 1
@@ -28,9 +29,9 @@ MonoBehaviour:
   modelLocalScale: 2
   useLeftHand: 1
   weaponAnimationType: 3
-  currentDurability: 100
+  currentDurability: 300
   upgradeLevel: 0
   projectilePrefab: {fileID: 5894124032144582427, guid: 8240a279a29e0bd4c83d5be23d4e0714, type: 3}
   projectileSpeed: 50
   maxAmmo: 150
-  currentAmmo: 20
+  currentAmmo: 150

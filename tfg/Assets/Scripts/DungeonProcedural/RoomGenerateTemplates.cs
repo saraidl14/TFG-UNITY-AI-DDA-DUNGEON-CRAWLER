@@ -141,6 +141,7 @@ public class RoomGenerateTemplates : MonoBehaviour
 
         if (MetricsTracker.Instance != null)
         {
+            MetricsTracker.Instance.ResetRoomMetrics();    // limpiar metricas de la mazmorra anterior
             MetricsTracker.Instance.StartRoomTimer();
             MetricsTracker.Instance.StartDungeonTimer();   // cronómetro total hasta el jefe
         }

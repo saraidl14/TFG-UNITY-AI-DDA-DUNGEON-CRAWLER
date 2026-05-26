@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c797805624024ed408c7baec4c8fe12f, type: 3}
   m_Name: Espada Rara
   m_EditorClassIdentifier: 
-  itemName: Espada Comun
+  itemName: Espada Rara
   icon: {fileID: 887096187, guid: 3fd88cc3dacaeca4fa060aeea3b025f4, type: 3}
-  description: Una espada desgastada y poco afilada
+  description: Una espada desgastada y afilada
   itemType: 0
   stackable: 0
   maxStack: 1

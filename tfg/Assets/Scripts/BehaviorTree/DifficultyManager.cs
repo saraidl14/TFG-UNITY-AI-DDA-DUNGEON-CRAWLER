@@ -184,11 +184,12 @@ public class DifficultyManager : MonoBehaviour
 
         float totalScore = 0f;
         totalScore += EvaluatePlayerDamageRule(mt.DamageTaken);
-        totalScore += EvaluateKillSpeedRule(mt.TimeTaken);
+        totalScore += EvaluateKillSpeedRule(mt.TotalRunTime); // tiempo completo de mazmorra
         totalScore += EvaluateHealthRemainingRule(mt.HpRemaining);
         totalScore += EvaluateDeathCountRule(mt.DeathCount);
         totalScore += EvaluatePerfectStreakRule(mt.PerfectStreak);
         totalScore += EvaluateItemUsageRule(mt.ItemsUsed);
+        totalScore += EvaluateEnemyCountRule(mt.EnemiesKilled);
 
         // Guardar el score para la mecanica compensatoria
         _lastDDAScore = totalScore;
@@ -225,12 +226,13 @@ public class DifficultyManager : MonoBehaviour
     /// </summary>
     private float EvaluateKillSpeedRule(float timeTaken)
     {
-        if (timeTaken < 20f)  return 18f;  // Muy rapido: domina
-        if (timeTaken < 40f)  return 12f;  // Rapido: bien
-        if (timeTaken < 60f)  return 10f;  // Menos de 1 min: garantiza +1 aunque HP sea baja
-        if (timeTaken <= 90f) return  3f;  // Normal: ligero positivo
-        if (timeTaken > 120f) return -5f;  // Muy lento: costo mucho
-        return 0f;
+        // timeTaken = TotalRunTime (tiempo completo de la mazmorra en segundos)
+        if (timeTaken < 180f)  return 18f;  // < 3 min: domina la mazmorra
+        if (timeTaken < 300f)  return 12f;  // < 5 min: muy rapido
+        if (timeTaken < 480f)  return  6f;  // < 8 min: ritmo bueno
+        if (timeTaken < 720f)  return  2f;  // < 12 min: ritmo normal
+        if (timeTaken < 900f)  return  0f;  // < 15 min: lento pero ok
+        return -5f;                          // > 15 min: muy lento
     }
 
     /// <summary>
@@ -270,6 +272,20 @@ public class DifficultyManager : MonoBehaviour
         if (itemsUsed == 0) return 3f;
         if (itemsUsed <= 2) return 0f;
         return -3f;
+    }
+
+    /// <summary>
+    /// Regla 7 — EnemyCountRule
+    /// Cuantos más enemigos mates en la mazmorra, mayor bonificación.
+    /// Refleja que el jugador domina las salas aunque tarde más tiempo.
+    /// </summary>
+    private float EvaluateEnemyCountRule(int enemiesKilled)
+    {
+        if (enemiesKilled >= 40) return 10f;  // Mazmorra grande limpiada
+        if (enemiesKilled >= 25) return  6f;  // Muchos enemigos eliminados
+        if (enemiesKilled >= 15) return  3f;  // Cantidad normal
+        if (enemiesKilled >= 5)  return  1f;  // Pocos enemigos
+        return 0f;
     }
 
     // ─────────────────────────────────────────────
@@ -418,12 +434,12 @@ public class DifficultyManager : MonoBehaviour
         int baseAdj  = CalculateAdjustment(score);
         int finalAdj = ApplyContextModifiers(baseAdj, mt);
 
-        // 3. En Game Over el ajuste NUNCA puede subir la dificultad —
-        //    el jugador ha muerto, seria injusto y contraproducente.
-        if (finalAdj > 0)
+        // 3. En Game Over (boss mató al jugador) el ajuste máximo es +1 —
+        //    si el rendimiento fue bueno pero el boss te mató, se premia con +1 como mucho.
+        if (finalAdj > 1)
         {
-            Debug.Log($"[DifficultyManager] Ajuste positivo ({finalAdj}) bloqueado en Game Over → 0.");
-            finalAdj = 0;
+            Debug.Log($"[DifficultyManager] Ajuste ({finalAdj}) limitado a +1 en Game Over (boss eliminó al jugador).");
+            finalAdj = 1;
         }
 
         // 4. Aplicar (respeta la banda elegida)

@@ -12,9 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c797805624024ed408c7baec4c8fe12f, type: 3}
   m_Name: Espada Legendaria
   m_EditorClassIdentifier: 
-  itemName: Espada Comun
+  itemName: Espada Legendaria
   icon: {fileID: -946006657, guid: 3fd88cc3dacaeca4fa060aeea3b025f4, type: 3}
-  description: Una espada desgastada y poco afilada
+  description: "Se dice que es la espada legendaria de un maestro espadach\xEDn que
+    consquist\xF3 el continente y mato cientos de dragones."
   itemType: 0
   stackable: 0
   maxStack: 1
