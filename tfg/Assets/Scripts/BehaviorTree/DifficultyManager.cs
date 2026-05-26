@@ -400,15 +400,33 @@ public class DifficultyManager : MonoBehaviour
             return;
         }
 
+        MetricsTracker mt = MetricsTracker.Instance;
+
+        // Si los metricas ya fueron reseteadas (sala limpia justo antes de morir),
+        // DeathCount sera 0 aunque el jugador este muerto — forzar al menos 1 muerte.
+        if (mt.DeathCount == 0)
+        {
+            mt.RegisterDeath();
+            Debug.Log("[DifficultyManager] Muerte forzada en metricas (sala ya reseteada antes de morir).");
+        }
+
         // 1. Calcular score con las metricas actuales (incluye la muerte)
         EvaluateDifficulty();
 
         // 2. Calcular ajuste base
-        float score  = MetricsTracker.Instance.LastDDAScore;
+        float score  = mt.LastDDAScore;
         int baseAdj  = CalculateAdjustment(score);
-        int finalAdj = ApplyContextModifiers(baseAdj, MetricsTracker.Instance);
+        int finalAdj = ApplyContextModifiers(baseAdj, mt);
 
-        // 3. Aplicar (respeta la banda elegida)
+        // 3. En Game Over el ajuste NUNCA puede subir la dificultad —
+        //    el jugador ha muerto, seria injusto y contraproducente.
+        if (finalAdj > 0)
+        {
+            Debug.Log($"[DifficultyManager] Ajuste positivo ({finalAdj}) bloqueado en Game Over → 0.");
+            finalAdj = 0;
+        }
+
+        // 4. Aplicar (respeta la banda elegida)
         AdjustLevel(finalAdj);
 
         Debug.Log($"[DifficultyManager] Retry: score={score:F1} ajuste={finalAdj:+0;-0} → nivel={currentLevel}");

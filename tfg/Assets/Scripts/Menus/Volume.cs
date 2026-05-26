@@ -2,7 +2,7 @@
  * Autor:  Sara Iglesias 
  * 
  * Fecha: 25/03/26
- * Fecha entrega: 23 / 05 / 26
+ * Fecha entrega: 26 / 05 / 26
  * Descripcion: Script que se encarga de controlar el sonido del juego
  * Versión: 1.0 primera version compilable
  *          2.0 con interfaz grafica y compilable

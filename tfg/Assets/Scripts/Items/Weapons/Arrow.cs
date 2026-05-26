@@ -1,6 +1,6 @@
 /*  Nombre:      Arrow.cs
  *  Autor:       Sara Iglesias
- *  Fecha:       26/05/2026
+ *  Fecha:       18/04/2026
  *  Descripcion: Proyectil del arco que se mueve en línea recta y daña al primer enemigo.
  */
 using UnityEngine;
