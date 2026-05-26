@@ -1,3 +1,8 @@
+/*  Nombre:      MediumRangeWeaponData.cs
+ *  Autor:       Sara Iglesias
+ *  Fecha:       26/05/2026
+ *  Descripcion: ScriptableObject para armas de medio alcance con knockback (lanzas).
+ */
 using UnityEngine;
 
 /// <summary>
