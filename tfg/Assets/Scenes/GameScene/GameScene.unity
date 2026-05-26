@@ -15364,7 +15364,7 @@ PrefabInstance:
       objectReference: {fileID: 850093659810418306, guid: cd7721970ecc7f644b3873203536fc1e, type: 3}
     - target: {fileID: 6904829615355644262, guid: df4abf97c5b8eac46b38ca8a10d43a44, type: 3}
       propertyPath: chestYOffset
-      value: 0.5
+      value: 0.55
       objectReference: {fileID: 0}
     - target: {fileID: 6904829615355644262, guid: df4abf97c5b8eac46b38ca8a10d43a44, type: 3}
       propertyPath: navMeshSurface

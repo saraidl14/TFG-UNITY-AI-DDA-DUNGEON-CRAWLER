@@ -89,10 +89,6 @@ public class RoomGenerateTemplates : MonoBehaviour
 
     private void Awake()
     {
-        // Destruir las salas de la mazmorra anterior antes de generar la nueva
-        foreach (GameObject room in rooms)
-            if (room != null) Destroy(room);
-
         RoomSpawns.ResetStatic();
         AddRooms.OccupiedPositions.Clear();
         rooms.Clear();
@@ -122,15 +118,21 @@ public class RoomGenerateTemplates : MonoBehaviour
         }
 
         // Hornear NavMesh con todas las salas ya generadas
+        // Fallback por si la referencia del Inspector se rompió al recargar la escena
+        if (navMeshSurface == null)
+            navMeshSurface = FindObjectOfType<NavMeshSurface>();
+
         if (navMeshSurface != null)
         {
+            // Forzar que recoja TODA la geometría de la escena (no solo Children del GameController)
+            navMeshSurface.collectObjects = CollectObjects.All;
             navMeshSurface.RemoveData();   // eliminar el NavMesh de la mazmorra anterior
             navMeshSurface.BuildNavMesh(); // hornear sobre la nueva geometría
             Debug.Log("[RoomGenerateTemplates] NavMesh reseteado y horneado correctamente.");
         }
         else
         {
-            Debug.LogWarning("[RoomGenerateTemplates] NavMeshSurface no asignado en el Inspector.");
+            Debug.LogWarning("[RoomGenerateTemplates] NavMeshSurface no encontrado en la escena.");
         }
 
         // Esperar 2 frames para que el NavMeshAgent registre el NavMesh recien horneado.
