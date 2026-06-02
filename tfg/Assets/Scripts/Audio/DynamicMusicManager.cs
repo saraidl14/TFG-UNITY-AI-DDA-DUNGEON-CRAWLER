@@ -203,21 +203,16 @@ public class DynamicMusicManager : MonoBehaviour
         audioNormal?.Stop();
         audioLowHealth?.Stop();
 
-        Debug.Log($"[DynamicMusic] StartMenuMusic | audioMenu={audioMenu} | musicMenu={musicMenu} | maxVolume={maxVolume} | AudioListener.volume={AudioListener.volume}");
+        if (audioMenu == null || musicMenu == null) return;
 
-        // Reproducir música de menú
-        if (audioMenu != null && musicMenu != null)
-        {
-            audioMenu.clip   = musicMenu;
-            audioMenu.loop   = true;
-            audioMenu.volume = maxVolume;
-            audioMenu.Play();
-            Debug.Log($"[DynamicMusic] Reproduciendo '{musicMenu.name}' | isPlaying={audioMenu.isPlaying}");
-        }
-        else
-        {
-            Debug.LogWarning($"[DynamicMusic] No se puede reproducir: audioMenu={audioMenu != null} | musicMenu={musicMenu != null}");
-        }
+        // Si ya está sonando la música del menú no reiniciar desde el principio
+        // (evita que volver de Instrucciones corte la canción)
+        if (audioMenu.isPlaying && audioMenu.clip == musicMenu) return;
+
+        audioMenu.clip   = musicMenu;
+        audioMenu.loop   = true;
+        audioMenu.volume = maxVolume;
+        audioMenu.Play();
     }
 
     private void StartMusic()

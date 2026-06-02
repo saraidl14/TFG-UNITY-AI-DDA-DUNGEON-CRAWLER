@@ -65,30 +65,43 @@ public class FullScreen : MonoBehaviour
     }
     public void RevisarResoluciones() //revisa las resoluciones disponibles
     {
+        Resolution[] todasLasResoluciones = Screen.resolutions;
+        resolucionesDropDown.ClearOptions();
 
-        resoluciones = Screen.resolutions;//obtiene las resoluciones disponibles
-        resolucionesDropDown.ClearOptions(); //Borra las opciones del dropdown
-        List<string> opciones = new List<string>(); //crea una lista de opciones
-        int resolucionActual = 0; //inicializa la resolucion actual a 0
+        List<string>     opciones           = new List<string>();
+        List<Resolution> resolucionesUnicas = new List<Resolution>();
+        System.Collections.Generic.HashSet<string> vistas = new System.Collections.Generic.HashSet<string>();
 
-        for (int i = 0; i < resoluciones.Length; i++)
+        int resolucionActual = 0;
+
+        for (int i = 0; i < todasLasResoluciones.Length; i++)
         {
-            string opcion = resoluciones[i].width + " x " + resoluciones[i].height;
-            opciones.Add(opcion);
+            // Ignorar duplicados que solo difieren en la tasa de refresco
+            string clave = todasLasResoluciones[i].width + "x" + todasLasResoluciones[i].height;
+            if (vistas.Contains(clave)) continue;
+            vistas.Add(clave);
 
-            if (Screen.fullScreen && resoluciones[i].width == Screen.currentResolution.width && //si la resolucion actual es igual a la resolucion de la pantalla
-                resoluciones[i].height == Screen.currentResolution.height)
+            string opcion = todasLasResoluciones[i].width + " x " + todasLasResoluciones[i].height;
+            opciones.Add(opcion);
+            resolucionesUnicas.Add(todasLasResoluciones[i]);
+
+            if (todasLasResoluciones[i].width  == Screen.currentResolution.width &&
+                todasLasResoluciones[i].height == Screen.currentResolution.height)
             {
-                resolucionActual = i; //guarda la resolucion actual
+                resolucionActual = resolucionesUnicas.Count - 1;
             }
         }
 
-        resolucionesDropDown.AddOptions(opciones); //a�ade las opciones al dropdown
-        resolucionesDropDown.value = resolucionActual; //selecciona la resolucion actual
-        resolucionesDropDown.RefreshShownValue(); //refresca el dropdown
+        // Usar solo la lista deduplicada de aquí en adelante
+        resoluciones = resolucionesUnicas.ToArray();
 
-        resolucionesDropDown.value = PlayerPrefs.GetInt("numResolucion", 0);
+        resolucionesDropDown.AddOptions(opciones);
+        resolucionesDropDown.value = resolucionActual;
+        resolucionesDropDown.RefreshShownValue();
 
+        // Restaurar la selección guardada (sin superar el nuevo límite)
+        int guardada = PlayerPrefs.GetInt("numResolucion", resolucionActual);
+        resolucionesDropDown.value = Mathf.Clamp(guardada, 0, opciones.Count - 1);
     }
 
     public void CambiarResolucion(int indiceResolucion) //cambia la resolucion

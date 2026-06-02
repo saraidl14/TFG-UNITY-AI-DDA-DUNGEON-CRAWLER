@@ -440,6 +440,32 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Reinicia completamente el estado de la sesión actual.
+    /// Llamar al volver al menú principal desde el menú de pausa.
+    /// No toca DifficultyManager (se reconfigura al elegir dificultad en el menú)
+    /// ni los datos persistentes (monedas/pociones guardadas entre muertes).
+    /// </summary>
+    public void ResetSession()
+    {
+        SessionCoins          = 0;
+        SessionPotions        = 0;
+        HardcoreMode          = false;
+        AccumulatedSpeedBoost = 0f;
+        DungeonNumber         = 1;
+
+        _dungeonStartTime     = 0f;
+        _dungeonStartKills    = 0;
+        _dungeonStartCoins    = 0;
+        _dungeonStartScore    = 0;
+        LastDungeonTime       = 0f;
+        LastDungeonKills      = 0;
+        LastDungeonCoins      = 0;
+        LastDungeonScore      = 0;
+
+        Debug.Log("[GameManager] Sesión reiniciada (vuelta al menú desde pausa).");
+    }
+
+    /// <summary>
     /// Carga la escena de Game Over SIN pantalla de carga para que aparezca inmediatamente.
     /// La pantalla de carga se usa al hacer Retry desde GameOverUI.
     /// </summary>

@@ -200,8 +200,8 @@ public class InstructionsUI : MonoBehaviour
                 "  Botón 'Menu principal'  →  Carga la escena del menú principal" +
                 "\n\n<color=#AAAAAA>El menú de pausa bloquea el movimiento y el combate, pero no la cámara.</color>" +
                 "\n\n<color=#AAAAAA>El menú de pausa no se muestra en esta pantalla de instrucciones, pero puedes probarlo durante el juego.</color>" +
-                "<b>Salir del juego </b>\n" +
-                "  Botón 'Exit'  →  Cierra la aplicación"
+                "<b>Salir del juego</b>\n" +
+                "  Botón 'Salir'  →  Cierra la aplicación"
 
             ),
 

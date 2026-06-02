@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.SceneManagement;
 using Unity.AI.Navigation;
 
 /// <summary>
@@ -89,14 +90,30 @@ public class RoomGenerateTemplates : MonoBehaviour
 
     private void Awake()
     {
+        // Primera mazmorra: limpiar estado inicial
+        InitNewDungeon();
+
+        // Suscribirse al evento de carga de escena para re-lanzar en mazmorras siguientes
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // Se ejecuta en TODAS las cargas de escena, incluida la primera
+        InitNewDungeon();
+        StartCoroutine(WaitForGenerationAndSpawn());
+    }
+
+    private void InitNewDungeon()
+    {
         RoomSpawns.ResetStatic();
         AddRooms.OccupiedPositions.Clear();
         rooms.Clear();
-    }
-
-    private void Start()
-    {
-        StartCoroutine(WaitForGenerationAndSpawn());
     }
 
     private IEnumerator WaitForGenerationAndSpawn()

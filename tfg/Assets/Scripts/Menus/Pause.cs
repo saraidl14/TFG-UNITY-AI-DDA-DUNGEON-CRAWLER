@@ -87,10 +87,21 @@ public class Pause : MonoBehaviour
 
     /// <summary>
     /// Carga la escena indicada (menu principal).
-    /// Restaura el estado del juego antes de cambiar de escena.
+    /// Restaura el estado del juego y limpia el inventario antes de cambiar de escena.
     /// </summary>
     public void irAlMenu(string nombreEscena)
     {
+        // Limpiar inventario: el loot no debe sobrevivir si se abandona la partida
+        Inventory.Instance?.ClearAll();
+
+        // Reiniciar el estado completo de la sesión
+        GameManager.Instance?.ResetSession();
+
+        // Reiniciar puntuación y métricas DDA
+        ScoreManager.Instance?.ResetAll();
+        MetricsTracker.Instance?.ResetRoomMetrics();
+        MetricsTracker.Instance?.ResetStreak();
+
         Time.timeScale   = 1f;
         Cursor.visible   = true;
         Cursor.lockState = CursorLockMode.None;
