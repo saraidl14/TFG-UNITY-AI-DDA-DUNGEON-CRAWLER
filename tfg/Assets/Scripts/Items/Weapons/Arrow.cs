@@ -46,22 +46,21 @@ public class Arrow : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        // Ignorar al propio jugador
         if (other.CompareTag("Player")) return;
 
-        bool isEnemy = other.CompareTag("Enemy")
-                    || other.gameObject.layer == LayerMask.NameToLayer("Enemy");
+        // Buscar EnemyBase en el objeto o en cualquier padre (el collider puede estar en un hueso hijo)
+        // No se usa tag ni layer para evitar problemas de configuración en el Inspector
+        EnemyBase enemy = other.GetComponent<EnemyBase>()
+                       ?? other.GetComponentInParent<EnemyBase>();
 
-        if (!isEnemy) return;
+        if (enemy == null) return;   // no es un enemigo → la flecha sigue volando
 
-        EnemyBase enemy = other.GetComponent<EnemyBase>() ?? other.GetComponentInParent<EnemyBase>();
-        if (enemy != null)
-        {
-            enemy.TakeDamage(damage);
-            if (knockbackForce > 0f)
-                enemy.Knockback(transform.forward, knockbackForce);
-            Debug.Log($"[Arrow] Impacto en {other.name} | Daño: {damage}");
-        }
+        enemy.TakeDamage(damage);
+        if (knockbackForce > 0f)
+            enemy.Knockback(transform.forward, knockbackForce);
 
+        Debug.Log($"[Arrow] Impacto en {enemy.name} | Daño: {damage}");
         Destroy(gameObject);
     }
 }

@@ -259,7 +259,10 @@ public class PlayerCombat : MonoBehaviour
 
         foreach (Collider hit in hits)
         {
-            EnemyBase enemy = hit.GetComponent<EnemyBase>();
+            // Buscar en el objeto y en su raíz — el collider puede estar en un hijo
+            // (modelos Humanoid como el Mago tienen el CapsuleCollider en un child)
+            EnemyBase enemy = hit.GetComponent<EnemyBase>()
+                           ?? hit.GetComponentInParent<EnemyBase>();
             if (enemy == null) continue;
 
             // Aplicar dano al enemigo

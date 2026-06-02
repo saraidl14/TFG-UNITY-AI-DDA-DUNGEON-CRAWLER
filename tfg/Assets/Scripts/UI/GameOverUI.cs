@@ -105,6 +105,10 @@ public class GameOverUI : MonoBehaviour
 
     private void OnRetry()
     {
+        // Reiniciar sesión: pone DungeonNumber = 1, AccumulatedSpeedBoost = 0, etc.
+        // Necesario para que el cofre inicial (firstDungeonOnly) vuelva a aparecer
+        GameManager.Instance?.ResetSession();
+
         // ResetForRetry conserva las muertes acumuladas entre intentos
         if (ScoreManager.Instance != null) ScoreManager.Instance.ResetForRetry();
 

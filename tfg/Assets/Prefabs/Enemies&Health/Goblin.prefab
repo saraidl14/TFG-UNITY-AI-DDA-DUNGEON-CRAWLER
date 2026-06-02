@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 5275898481302443678}
   m_Layer: 6
   m_Name: Goblin
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -120,12 +120,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e1d0370a9c6f4d42a46d959eb1149b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  healthSlider: {fileID: 0}
   fillImage: {fileID: 8666477551195702881}
   colorAlto: {r: 0, g: 1, b: 0, a: 1}
   colorMedio: {r: 1, g: 0.65, b: 0, a: 1}
   colorBajo: {r: 1, g: 0, b: 0, a: 1}
   ocultarEnMaxHP: 1
   alturaOffset: 1.8
+  lerpSpeed: 6
 --- !u!195 &5275898481302443678
 NavMeshAgent:
   m_ObjectHideFlags: 0

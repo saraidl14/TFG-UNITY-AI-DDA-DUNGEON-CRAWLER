@@ -434,12 +434,29 @@ public class DifficultyManager : MonoBehaviour
         int baseAdj  = CalculateAdjustment(score);
         int finalAdj = ApplyContextModifiers(baseAdj, mt);
 
-        // 3. En Game Over (boss mató al jugador) el ajuste máximo es +1 —
-        //    si el rendimiento fue bueno pero el boss te mató, se premia con +1 como mucho.
+        // 3. Límites en Game Over según tiempo jugado:
+        //
+        //    Subida: máx +1 siempre (morir bien no debería subir más de 1 nivel).
+        //
+        //    Bajada:
+        //      - Si el jugador murió en < 30 s → la dificultad era claramente excesiva.
+        //        Permitir hasta -3 (el score completo decide).
+        //      - Si jugó ≥ 30 s → fue una muerte normal; bajar solo 1 nivel.
         if (finalAdj > 1)
         {
-            Debug.Log($"[DifficultyManager] Ajuste ({finalAdj}) limitado a +1 en Game Over (boss eliminó al jugador).");
+            Debug.Log($"[DifficultyManager] Ajuste ({finalAdj}) limitado a +1 en Game Over.");
             finalAdj = 1;
+        }
+
+        bool murioMuyRapido = mt.TotalRunTime < 30f;
+        if (finalAdj < -1 && !murioMuyRapido)
+        {
+            Debug.Log($"[DifficultyManager] Ajuste ({finalAdj}) limitado a -1 (jugó {mt.TotalRunTime:F0}s ≥ 30s).");
+            finalAdj = -1;
+        }
+        else if (finalAdj < -1)
+        {
+            Debug.Log($"[DifficultyManager] Ajuste ({finalAdj}) permitido completo (murió en {mt.TotalRunTime:F0}s < 30s).");
         }
 
         // 4. Aplicar (respeta la banda elegida)

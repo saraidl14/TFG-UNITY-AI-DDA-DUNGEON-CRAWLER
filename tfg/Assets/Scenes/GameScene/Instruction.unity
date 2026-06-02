@@ -384,6 +384,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1444034207270755608, guid: 0b5d65bc60023c94da76b2945617ef4a, type: 3}
+      propertyPath: m_text
+      value: Ir Menu
+      objectReference: {fileID: 0}
     - target: {fileID: 1739464194650144912, guid: 0b5d65bc60023c94da76b2945617ef4a, type: 3}
       propertyPath: m_Name
       value: Canvas
@@ -467,6 +471,14 @@ PrefabInstance:
     - target: {fileID: 4092066435587972349, guid: 0b5d65bc60023c94da76b2945617ef4a, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6381508550293581509, guid: 0b5d65bc60023c94da76b2945617ef4a, type: 3}
+      propertyPath: m_text
+      value: Volver
+      objectReference: {fileID: 0}
+    - target: {fileID: 8935813079080570674, guid: 0b5d65bc60023c94da76b2945617ef4a, type: 3}
+      propertyPath: m_text
+      value: Siguiente
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
